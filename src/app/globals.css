@@ -1,0 +1,261 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKEN REGISTRY
+   Maps Tailwind utility names → CSS custom properties.
+   All color values are defined in :root / .dark below.
+═══════════════════════════════════════════════════════════════ */
+@theme inline {
+  /* Typography */
+  --font-sans:    var(--font-sans);
+  --font-mono:    var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+
+  /* Surfaces */
+  --color-background:        var(--background);
+  --color-foreground:        var(--foreground);
+  --color-card:              var(--card);
+  --color-card-foreground:   var(--card-foreground);
+  --color-popover:           var(--popover);
+  --color-popover-foreground:var(--popover-foreground);
+
+  /* Brand */
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* Neutral fills */
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+
+  /* Semantic */
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success:                var(--success);
+  --color-success-foreground:     var(--success-foreground);
+  --color-warning:                var(--warning);
+  --color-warning-foreground:     var(--warning-foreground);
+  --color-info:                   var(--info);
+  --color-info-foreground:        var(--info-foreground);
+
+  /* Structural */
+  --color-border: var(--border);
+  --color-input:  var(--input);
+  --color-ring:   var(--ring);
+
+  /* Sidebar */
+  --color-sidebar:                   var(--sidebar);
+  --color-sidebar-foreground:        var(--sidebar-foreground);
+  --color-sidebar-primary:           var(--sidebar-primary);
+  --color-sidebar-primary-foreground:var(--sidebar-primary-foreground);
+  --color-sidebar-accent:            var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border:            var(--sidebar-border);
+  --color-sidebar-ring:              var(--sidebar-ring);
+
+  /* Charts — sophisticated muted palette */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius scale — 8px base, clean precision */
+  --radius-sm:  calc(var(--radius) * 0.5);   /* 4px  */
+  --radius-md:  calc(var(--radius) * 0.75);  /* 6px  */
+  --radius-lg:  var(--radius);               /* 8px  */
+  --radius-xl:  calc(var(--radius) * 1.5);   /* 12px */
+  --radius-2xl: calc(var(--radius) * 2);     /* 16px */
+  --radius-3xl: calc(var(--radius) * 2.5);   /* 20px */
+  --radius-4xl: calc(var(--radius) * 3);     /* 24px */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LIGHT MODE — Zinc Minimal
+   Inspired by: Notion, Linear, Vercel
+   Philosophy: near-black primary, white surface, zinc neutrals
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --radius: 0.5rem; /* 8px base */
+
+  /* ── Muted (defined first — referenced by --background) ────── */
+  --muted:             oklch(0.967 0.001 286.4);   /* zinc-100 */
+  --muted-foreground:  oklch(0.552 0.016 285.9);   /* #71717A zinc-500 */
+
+  /* ── Surfaces ──────────────────────────────────────────────── */
+  --background:        color-mix(in oklch, var(--muted) 30%, white); /* muted/30 */
+  --foreground:        oklch(0.141 0.005 285.8);   /* #09090B  near-black text */
+
+  /* ── Card / Popover ────────────────────────────────────────── */
+  --card:              oklch(1 0 0);               /* #FFFFFF  pure white card */
+  --card-foreground:   oklch(0.141 0.005 285.8);
+  --popover:           oklch(1 0 0);
+  --popover-foreground:oklch(0.141 0.005 285.8);
+
+  /* ── Primary — near-black (Notion/Linear style) ────────────── */
+  --primary:           oklch(0.141 0.005 285.8);   /* #09090B zinc-950 */
+  --primary-foreground:oklch(0.985 0.001 264.6);   /* near-white */
+
+  /* ── Secondary ─────────────────────────────────────────────── */
+  --secondary:         oklch(0.967 0.001 286.4);   /* #F4F4F5 zinc-100 */
+  --secondary-foreground:oklch(0.141 0.005 285.8);
+
+  /* ── Accent ─────────────────────────────────────────────────── */
+  --accent:            oklch(0.967 0.001 286.4);   /* zinc-100 */
+  --accent-foreground: oklch(0.141 0.005 285.8);
+
+  /* ── Destructive ───────────────────────────────────────────── */
+  --destructive:         oklch(0.577 0.245 27.3);  /* red-500 */
+  --destructive-foreground: oklch(1 0 0);
+
+  /* ── Semantic status ───────────────────────────────────────── */
+  /* Light: subtle tinted backgrounds + dark text */
+  --success:           oklch(0.951 0.038 156.7);   /* emerald-50  bg */
+  --success-foreground:oklch(0.316 0.101 155.0);   /* emerald-800 text */
+  --warning:           oklch(0.972 0.035 59.4);    /* amber-50    bg */
+  --warning-foreground:oklch(0.378 0.112 61.1);    /* amber-800   text */
+  --info:              oklch(0.951 0.026 236.8);   /* blue-50     bg */
+  --info-foreground:   oklch(0.315 0.117 254.6);   /* blue-800    text */
+
+  /* ── Border / Input / Ring ─────────────────────────────────── */
+  --border: oklch(0.92 0.004 286.3);               /* #E4E4E7 zinc-200 */
+  --input:  oklch(0.92 0.004 286.3);
+  --ring:   oklch(0.205 0.006 285.9);              /* zinc-900 — crisp focus ring */
+
+  /* ── Sidebar — barely-off-white for depth ──────────────────── */
+  --sidebar:                   oklch(0.975 0.002 264.6); /* #F7F7F8 */
+  --sidebar-foreground:        oklch(0.37 0.013 285.8);  /* zinc-700 */
+  --sidebar-primary:           oklch(0.141 0.005 285.8);
+  --sidebar-primary-foreground:oklch(0.985 0.001 264.6);
+  --sidebar-accent:            oklch(0.92 0.004 286.3);  /* zinc-200 active */
+  --sidebar-accent-foreground: oklch(0.141 0.005 285.8);
+  --sidebar-border:            oklch(0.92 0.004 286.3);
+  --sidebar-ring:              oklch(0.205 0.006 285.9);
+
+  /* ── Charts — muted sophisticated palette ──────────────────── */
+  --chart-1: oklch(0.205 0.006 285.9);  /* zinc-900 */
+  --chart-2: oklch(0.527 0.154 150.1);  /* emerald-600 */
+  --chart-3: oklch(0.546 0.188 248.5);  /* blue-600 */
+  --chart-4: oklch(0.553 0.149 52.5);   /* amber-600 */
+  --chart-5: oklch(0.577 0.245 27.3);   /* red-500 */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE — Zinc Deep
+   Inspired by: Linear, Vercel, Raycast
+   Philosophy: near-black bg, white primary, subtle surfaces
+═══════════════════════════════════════════════════════════════ */
+.dark {
+  /* ── Muted (defined first — referenced by --background) ────── */
+  --muted:             oklch(0.205 0.006 285.9);   /* zinc-900 */
+  --muted-foreground:  oklch(0.705 0.015 286.1);   /* #A1A1AA zinc-400 */
+
+  /* ── Surfaces ──────────────────────────────────────────────── */
+  --background:        color-mix(in oklch, var(--muted) 30%, oklch(0.05 0.003 285.8)); /* muted/30 dark */
+  --foreground:        oklch(0.985 0.001 264.6);   /* near-white */
+
+  /* ── Card / Popover ────────────────────────────────────────── */
+  --card:              oklch(0.141 0.005 285.8);   /* #18181B zinc-900 */
+  --card-foreground:   oklch(0.985 0.001 264.6);
+  --popover:           oklch(0.141 0.005 285.8);
+  --popover-foreground:oklch(0.985 0.001 264.6);
+
+  /* ── Primary — white in dark mode ─────────────────────────── */
+  --primary:           oklch(0.985 0.001 264.6);
+  --primary-foreground:oklch(0.098 0.004 285.8);
+
+  /* ── Secondary ─────────────────────────────────────────────── */
+  --secondary:         oklch(0.205 0.006 285.9);   /* zinc-900 */
+  --secondary-foreground:oklch(0.985 0.001 264.6);
+
+  /* ── Accent ─────────────────────────────────────────────────── */
+  --accent:            oklch(0.205 0.006 285.9);
+  --accent-foreground: oklch(0.985 0.001 264.6);
+
+  /* ── Destructive ───────────────────────────────────────────── */
+  --destructive:         oklch(0.628 0.258 29.2);  /* red-400 */
+  --destructive-foreground: oklch(1 0 0);
+
+  /* ── Semantic status — dark: dark bg + light text ──────────── */
+  --success:           oklch(0.196 0.079 153.6);   /* emerald-950 bg */
+  --success-foreground:oklch(0.765 0.177 163.2);   /* emerald-400 text */
+  --warning:           oklch(0.209 0.052 60.4);    /* amber-950   bg */
+  --warning-foreground:oklch(0.828 0.189 84.4);    /* amber-400   text */
+  --info:              oklch(0.185 0.051 239.8);   /* blue-950    bg */
+  --info-foreground:   oklch(0.746 0.165 232.4);   /* blue-300    text */
+
+  /* ── Border / Input / Ring ─────────────────────────────────── */
+  --border: oklch(1 0 0 / 0.09);                   /* 9% white */
+  --input:  oklch(1 0 0 / 0.09);
+  --ring:   oklch(0.985 0.001 264.6);              /* white focus ring */
+
+  /* ── Sidebar — even darker than content ────────────────────── */
+  --sidebar:                   oklch(0.078 0.003 285.8); /* #0A0A0C */
+  --sidebar-foreground:        oklch(0.795 0.013 286.1); /* zinc-300 */
+  --sidebar-primary:           oklch(0.985 0.001 264.6);
+  --sidebar-primary-foreground:oklch(0.098 0.004 285.8);
+  --sidebar-accent:            oklch(0.205 0.006 285.9); /* zinc-900 */
+  --sidebar-accent-foreground: oklch(0.985 0.001 264.6);
+  --sidebar-border:            oklch(1 0 0 / 0.06);
+  --sidebar-ring:              oklch(0.985 0.001 264.6);
+
+  /* ── Charts ────────────────────────────────────────────────── */
+  --chart-1: oklch(0.795 0.013 286.1);  /* zinc-300 */
+  --chart-2: oklch(0.596 0.145 153.3);  /* emerald-500 */
+  --chart-3: oklch(0.623 0.183 241.1);  /* blue-400 */
+  --chart-4: oklch(0.684 0.147 52.5);   /* amber-400 */
+  --chart-5: oklch(0.628 0.258 29.2);   /* red-400 */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE LAYER — Typography, scrollbar, selection, focus
+═══════════════════════════════════════════════════════════════ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Heading hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+
+  /* Minimal custom scrollbar */
+  ::-webkit-scrollbar        { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { @apply rounded-full bg-border; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/25; }
+
+  /* Focus — crisp, no harsh glow */
+  :focus-visible {
+    outline: 2px solid oklch(from var(--ring) l c h / 0.45);
+    outline-offset: 2px;
+  }
+
+  /* Text selection */
+  ::selection {
+    background: oklch(0.141 0.005 285.8 / 0.12);
+    color: inherit;
+  }
+
+  .dark ::selection {
+    background: oklch(0.985 0.001 264.6 / 0.15);
+  }
+}
