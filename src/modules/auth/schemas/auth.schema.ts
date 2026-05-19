@@ -29,7 +29,8 @@ export const changePasswordSchema = z
       .string()
       .min(8, "Mật khẩu tối thiểu 8 ký tự")
       .regex(/[A-Z]/, "Phải có ít nhất 1 chữ hoa")
-      .regex(/[0-9]/, "Phải có ít nhất 1 số"),
+      .regex(/[0-9]/, "Phải có ít nhất 1 số")
+      .regex(/[^A-Za-z0-9]/, "Phải có ít nhất 1 ký tự đặc biệt"),
     confirmNewPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {

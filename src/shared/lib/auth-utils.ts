@@ -41,11 +41,19 @@ async function getDevUserId(): Promise<string> {
   }
 
   // Không có user → tự tạo role + user dev để tránh FK error
-  const role = await db.role.upsert({
-    where: { name: "owner" },
-    update: {},
-    create: { name: "owner", description: "Dev owner" },
-  })
+  // Dùng findFirst + create thay vì upsert để tránh race condition khi build parallel
+  let role = await db.role.findFirst({ where: { name: "owner" }, select: { id: true } })
+  if (!role) {
+    try {
+      role = await db.role.create({
+        data: { name: "owner", description: "Dev owner" },
+        select: { id: true },
+      })
+    } catch {
+      // Worker khác đã tạo trước — lấy lại
+      role = await db.role.findFirstOrThrow({ where: { name: "owner" }, select: { id: true } })
+    }
+  }
 
   const { hashPassword } = await import("@/shared/lib/password")
   const user = await db.user.create({

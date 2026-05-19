@@ -52,8 +52,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Chỉ chạy lần đầu khi user đăng nhập
       if (user) {
         token.id = user.id as string
-        token.roleId = (user as any).roleId as string
-        token.role = (user as any).role as RoleWithPermissions
+        const u = user as typeof user & { roleId: string; role: RoleWithPermissions }
+        token.roleId = u.roleId
+        token.role = u.role
       }
       return token
     },

@@ -66,11 +66,11 @@ const SOURCE_LABELS: Record<string, string> = {
 function DateRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: Date | null }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2 text-sm">
-      <div className="flex items-center gap-2 text-[#6B7280]">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <Icon className="h-3.5 w-3.5 shrink-0" />
         <span>{label}</span>
       </div>
-      <span className={value ? "tabular-nums font-medium text-[#111827]" : "text-[#D1D5DB]"}>
+      <span className={value ? "tabular-nums font-medium text-foreground" : "text-muted-foreground/40"}>
         {value ? format(new Date(value), "dd/MM/yyyy", { locale: vi }) : "Chưa có"}
       </span>
     </div>
@@ -221,7 +221,7 @@ export default async function OrderDetailPage({ params }: Props) {
             <Card>
               <CardHeader className="border-b">
                 <CardTitle className="flex items-center gap-2">
-                  <Tag className="size-4 text-[#7C3AED]" />
+                  <Tag className="size-4 text-muted-foreground" />
                   Phân loại đơn hàng
                 </CardTitle>
               </CardHeader>
@@ -258,7 +258,7 @@ export default async function OrderDetailPage({ params }: Props) {
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">
-                <User className="size-4 text-[#7C3AED]" />
+                <User className="size-4 text-primary" />
                 Thông tin khách hàng
               </CardTitle>
             </CardHeader>
@@ -268,7 +268,7 @@ export default async function OrderDetailPage({ params }: Props) {
                   <Building2 className="text-muted-foreground size-3.5 shrink-0" />
                   <Link
                     href={`/dashboard/customers/${order.customer.id}`}
-                    className="font-medium text-[#7C3AED] hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
                     {order.customer.name}
                   </Link>
@@ -299,11 +299,11 @@ export default async function OrderDetailPage({ params }: Props) {
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="size-4 text-[#7C3AED]" />
+                <CalendarDays className="size-4 text-primary" />
                 Lịch trình đơn hàng
               </CardTitle>
             </CardHeader>
-            <CardContent className="divide-y divide-[#F3F4F6] px-4 pt-2">
+            <CardContent className="divide-y divide-border px-4 pt-2">
               <DateRow icon={Camera} label="Ngày chụp" value={order.shootingDate} />
               <DateRow icon={ImageIcon} label="Ngày gửi ảnh gốc" value={order.rawPhotoSentDate} />
               <DateRow icon={CheckSquare} label="Ngày khách chọn ảnh" value={order.selectionDate} />
@@ -339,14 +339,14 @@ export default async function OrderDetailPage({ params }: Props) {
                   {Number(order.totalAmount).toLocaleString("vi-VN")} {order.currency}
                 </span>
               </div>
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-success-foreground">
                 <span>Đã thanh toán</span>
                 <span className="tabular-nums">
                   {Number(order.paidAmount).toLocaleString("vi-VN")}
                 </span>
               </div>
               {debt > 0 && (
-                <div className="flex justify-between font-semibold text-orange-600">
+                <div className="flex justify-between font-semibold text-warning-foreground">
                   <span>Còn lại</span>
                   <span className="tabular-nums">{debt.toLocaleString("vi-VN")}</span>
                 </div>
