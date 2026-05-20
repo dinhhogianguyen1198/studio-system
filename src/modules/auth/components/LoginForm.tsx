@@ -21,7 +21,7 @@ export function LoginForm() {
 
   useEffect(() => {
     if (state.success) {
-      router.push("/")
+      router.push("/dashboard")
       router.refresh()
     }
   }, [state.success, router])
