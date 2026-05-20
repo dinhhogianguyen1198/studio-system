@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import type { ActionResult } from "@/shared/types/api.types"
-import type { SerializedServiceDefinitionDetail } from "../../types/services.types"
+import type { SerializedServiceDefinitionSummary } from "../../types/services.types"
 import type { WorkflowTemplateSummary } from "@/modules/workflow/types/workflow.types"
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
     prevState: ActionResult<{ id: string }>,
     formData: FormData,
   ) => Promise<ActionResult<{ id: string }>>
-  defaultValues?: Partial<SerializedServiceDefinitionDetail>
+  defaultValues?: Partial<SerializedServiceDefinitionSummary>
   workflowTemplates: WorkflowTemplateSummary[]
   submitLabel?: string
   onSuccess?: () => void
