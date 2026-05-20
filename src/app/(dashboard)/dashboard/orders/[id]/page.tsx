@@ -189,6 +189,7 @@ export default async function OrderDetailPage({ params }: Props) {
             activeWorkers={activeWorkers}
             orderRevenue={Number(order.totalAmount)}
             currency={order.currency}
+            orderStatus={order.status}
           />
 
           {/* Phân loại (if any data) */}

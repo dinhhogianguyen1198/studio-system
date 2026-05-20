@@ -101,6 +101,7 @@ export const orderItemWorkerSelect = {
   notes: true,
   startedAt: true,
   completedAt: true,
+  paidAt: true,
   createdAt: true,
   worker: { select: { id: true, name: true, avatarUrl: true } },
   jobType: { select: { id: true, name: true, color: true } },

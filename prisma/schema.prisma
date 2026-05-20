@@ -586,6 +586,7 @@ model OrderItemWorker {
   notes               String?                @db.Text
   startedAt           DateTime?
   completedAt         DateTime?
+  paidAt              DateTime?
   assignedById        String
   assignedBy          User                   @relation("WorkerAssigner", fields: [assignedById], references: [id])
   createdAt           DateTime               @default(now())
@@ -596,6 +597,7 @@ model OrderItemWorker {
   @@index([workerId])
   @@index([jobTypeId])
   @@index([status])
+  @@index([paidAt])
   @@index([createdAt])
   @@map("order_item_workers")
 }

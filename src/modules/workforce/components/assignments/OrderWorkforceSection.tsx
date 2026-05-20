@@ -22,6 +22,7 @@ interface Props {
   activeWorkers: WorkerSummary[]
   orderRevenue: number
   currency: string
+  orderStatus: string
 }
 
 export function OrderWorkforceSection({
@@ -29,7 +30,9 @@ export function OrderWorkforceSection({
   activeWorkers,
   orderRevenue,
   currency,
+  orderStatus,
 }: Props) {
+  const isCancelled = orderStatus === "CANCELLED"
   const totalCost = services
     .flatMap((s) => s.assignments)
     .filter((a) => a.status !== "CANCELLED")
@@ -95,16 +98,18 @@ export function OrderWorkforceSection({
                       </span>
                     )}
                   </div>
-                  <WorkerAssignmentDialog
-                    orderItemId={service.itemId}
-                    orderItemName={service.itemName}
-                    workers={activeWorkers}
-                  >
-                    <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
-                      <Plus className="h-3 w-3" />
-                      Phân công
-                    </Button>
-                  </WorkerAssignmentDialog>
+                  {!isCancelled && (
+                    <WorkerAssignmentDialog
+                      orderItemId={service.itemId}
+                      orderItemName={service.itemName}
+                      workers={activeWorkers}
+                    >
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                        <Plus className="h-3 w-3" />
+                        Phân công
+                      </Button>
+                    </WorkerAssignmentDialog>
+                  )}
                 </div>
 
                 {/* Assignment cards */}
@@ -115,7 +120,7 @@ export function OrderWorkforceSection({
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {service.assignments.map((a) => (
-                      <WorkerAssignmentCard key={a.id} assignment={a} />
+                      <WorkerAssignmentCard key={a.id} assignment={a} orderCancelled={isCancelled} />
                     ))}
                   </div>
                 )}
