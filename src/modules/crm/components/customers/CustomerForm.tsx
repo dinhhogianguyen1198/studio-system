@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,6 +47,11 @@ export function CreateCustomerForm() {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(createCustomerAction, createInitial)
 
+  const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState("")
+  const [address, setAddress] = useState("")
+
   useEffect(() => {
     if (state.success) {
       router.push(`/dashboard/customers/${state.data.id}`)
@@ -65,19 +70,50 @@ export function CreateCustomerForm() {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Tên khách hàng *" htmlFor="name" errors={fe?.name}>
-          <Input id="name" name="name" placeholder="Nguyễn Văn A" aria-invalid={!!fe?.name} className={fe?.name ? "border-destructive" : ""} />
+          <Input
+            id="name"
+            name="name"
+            placeholder="Nguyễn Văn A"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            aria-invalid={!!fe?.name}
+            className={fe?.name ? "border-destructive" : ""}
+          />
         </Field>
 
         <Field label="Số điện thoại" htmlFor="phone" errors={fe?.phone}>
-          <Input id="phone" name="phone" placeholder="0901234567" aria-invalid={!!fe?.phone} className={fe?.phone ? "border-destructive" : ""} />
+          <Input
+            id="phone"
+            name="phone"
+            placeholder="0901234567"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            aria-invalid={!!fe?.phone}
+            className={fe?.phone ? "border-destructive" : ""}
+          />
         </Field>
 
         <Field label="Email" htmlFor="email" errors={fe?.email}>
-          <Input id="email" name="email" type="email" placeholder="example@email.com" aria-invalid={!!fe?.email} className={fe?.email ? "border-destructive" : ""} />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="example@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!fe?.email}
+            className={fe?.email ? "border-destructive" : ""}
+          />
         </Field>
 
         <Field label="Địa chỉ" htmlFor="address" errors={fe?.address}>
-          <Input id="address" name="address" placeholder="123 Đường ABC, Quận 1, TP.HCM" />
+          <Input
+            id="address"
+            name="address"
+            placeholder="123 Đường ABC, Quận 1, TP.HCM"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
         </Field>
       </div>
 
@@ -102,6 +138,11 @@ export function EditCustomerForm({ customer }: { customer: CustomerDetail }) {
   const boundAction = updateCustomerAction.bind(null, customer.id)
   const [state, formAction, isPending] = useActionState(boundAction, editInitial)
 
+  const [name, setName] = useState(customer.name)
+  const [phone, setPhone] = useState(customer.phone ?? "")
+  const [email, setEmail] = useState(customer.email ?? "")
+  const [address, setAddress] = useState(customer.address ?? "")
+
   useEffect(() => {
     if (state.success) {
       router.push(`/dashboard/customers/${customer.id}`)
@@ -120,19 +161,44 @@ export function EditCustomerForm({ customer }: { customer: CustomerDetail }) {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Tên khách hàng *" htmlFor="name" errors={fe?.name}>
-          <Input id="name" name="name" defaultValue={customer.name} aria-invalid={!!fe?.name} className={fe?.name ? "border-destructive" : ""} />
+          <Input
+            id="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            aria-invalid={!!fe?.name}
+            className={fe?.name ? "border-destructive" : ""}
+          />
         </Field>
 
         <Field label="Số điện thoại" htmlFor="phone" errors={fe?.phone}>
-          <Input id="phone" name="phone" defaultValue={customer.phone ?? ""} />
+          <Input
+            id="phone"
+            name="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </Field>
 
         <Field label="Email" htmlFor="email" errors={fe?.email}>
-          <Input id="email" name="email" type="email" defaultValue={customer.email ?? ""} aria-invalid={!!fe?.email} className={fe?.email ? "border-destructive" : ""} />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!fe?.email}
+            className={fe?.email ? "border-destructive" : ""}
+          />
         </Field>
 
         <Field label="Địa chỉ" htmlFor="address" errors={fe?.address}>
-          <Input id="address" name="address" defaultValue={customer.address ?? ""} />
+          <Input
+            id="address"
+            name="address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
         </Field>
       </div>
 

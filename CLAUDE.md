@@ -247,6 +247,30 @@ export function EntityForm({ action }: Props) {
 }
 ```
 
+### Quy tắc bắt buộc: Form không được clear data khi lưu thất bại
+
+**Mọi form trong hệ thống PHẢI dùng controlled inputs (`value` + `useState`) thay vì uncontrolled (`defaultValue`).** React 19 tự động reset native form sau mỗi server action — nếu không dùng controlled inputs, toàn bộ dữ liệu người dùng đã nhập sẽ bị xóa khi submit thất bại.
+
+```typescript
+// ❌ SAI — bị xóa data khi server action thất bại
+<Input name="name" defaultValue={customer.name} />
+
+// ✅ ĐÚNG — giữ nguyên data khi thất bại, chỉ reset khi thành công
+const [name, setName] = useState(customer.name)
+<Input name="name" value={name} onChange={(e) => setName(e.target.value)} />
+```
+
+**Pattern chuẩn cho mọi form:**
+1. Mỗi field có một `useState` riêng, khởi tạo từ `defaultValues` (nếu có)
+2. Dùng `value` + `onChange` thay vì `defaultValue`
+3. Chỉ reset state hoặc đóng dialog khi `state.success === true` trong `useEffect`
+4. Field errors từ action vẫn hiển thị bình thường, data trong input được giữ nguyên
+
+**Trường hợp đặc biệt — field tiền (số lớn):**
+- Dùng hidden input `name="fieldName"` chứa raw number để submit
+- Dùng visible input `type="text" inputMode="numeric"` để hiển thị số có dấu chấm phân cách (vi-VN locale)
+- Format với `num.toLocaleString("vi-VN")` (ví dụ: 1000000 → "1.000.000")
+
 ### Reusable UI patterns
 
 - Dùng `Button asChild` + `Link` cho navigation buttons — không dùng `onClick` để navigate.

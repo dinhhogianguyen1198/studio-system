@@ -82,6 +82,18 @@ export function NewOrderForm({ customers, services }: Props) {
   const [discount, setDiscount] = useState(0)
   const [applyVat, setApplyVat] = useState(false)
 
+  // Status & notes
+  const [orderStatus, setOrderStatus] = useState("DRAFT")
+  const [notes, setNotes] = useState("")
+  const [internalNotes, setInternalNotes] = useState("")
+
+  // Schedule dates
+  const [shootingDate, setShootingDate] = useState("")
+  const [rawPhotoSentDate, setRawPhotoSentDate] = useState("")
+  const [selectionDate, setSelectionDate] = useState("")
+  const [editedPhotoSentDate, setEditedPhotoSentDate] = useState("")
+  const [deliveryDate, setDeliveryDate] = useState("")
+
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const vatAmount = applyVat ? Math.round((subtotal - discount) * VAT_RATE) : 0
   const total = subtotal - discount + vatAmount
@@ -234,7 +246,8 @@ export function NewOrderForm({ customers, services }: Props) {
                     id="orderStatus"
                     name="status"
                     className={cn(selectClass, "font-semibold")}
-                    defaultValue="DRAFT"
+                    value={orderStatus}
+                    onChange={(e) => setOrderStatus(e.target.value)}
                   >
                     {ORDER_STATUS_OPTIONS.map((s) => (
                       <option key={s.value} value={s.value}>{s.label}</option>
@@ -251,6 +264,8 @@ export function NewOrderForm({ customers, services }: Props) {
                   rows={3}
                   placeholder="Yêu cầu của khách hàng..."
                   className={textareaClass}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">
@@ -261,6 +276,8 @@ export function NewOrderForm({ customers, services }: Props) {
                   rows={2}
                   placeholder="Ghi chú dành cho nhân viên..."
                   className={textareaClass}
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
                 />
               </div>
             </div>
@@ -276,12 +293,12 @@ export function NewOrderForm({ customers, services }: Props) {
 
             <div className="space-y-4">
               {[
-                { id: "shootingDate", name: "shootingDate", label: "Ngày chụp" },
-                { id: "rawPhotoSentDate", name: "rawPhotoSentDate", label: "Ngày gửi ảnh gốc" },
-                { id: "selectionDate", name: "selectionDate", label: "Ngày khách chọn ảnh" },
-                { id: "editedPhotoSentDate", name: "editedPhotoSentDate", label: "Ngày gửi ảnh chỉnh sửa" },
-                { id: "deliveryDate", name: "deliveryDate", label: "Ngày giao ảnh" },
-              ].map(({ id, name, label }) => (
+                { id: "shootingDate", name: "shootingDate", label: "Ngày chụp", value: shootingDate, onChange: setShootingDate },
+                { id: "rawPhotoSentDate", name: "rawPhotoSentDate", label: "Ngày gửi ảnh gốc", value: rawPhotoSentDate, onChange: setRawPhotoSentDate },
+                { id: "selectionDate", name: "selectionDate", label: "Ngày khách chọn ảnh", value: selectionDate, onChange: setSelectionDate },
+                { id: "editedPhotoSentDate", name: "editedPhotoSentDate", label: "Ngày gửi ảnh chỉnh sửa", value: editedPhotoSentDate, onChange: setEditedPhotoSentDate },
+                { id: "deliveryDate", name: "deliveryDate", label: "Ngày giao ảnh", value: deliveryDate, onChange: setDeliveryDate },
+              ].map(({ id, name, label, value, onChange }) => (
                 <div key={id} className="space-y-1.5">
                   <label htmlFor={id} className={labelClass}>{label}</label>
                   <input
@@ -289,6 +306,8 @@ export function NewOrderForm({ customers, services }: Props) {
                     name={name}
                     type="date"
                     className={cn(inputClass, "cursor-pointer")}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
                   />
                 </div>
               ))}

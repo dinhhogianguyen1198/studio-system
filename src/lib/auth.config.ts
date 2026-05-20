@@ -13,6 +13,8 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
     maxAge: 8 * 60 * 60, // 8 giờ
   },
+  // Cho phép cookie hoạt động trên HTTP (production không có HTTPS)
+  useSecureCookies: process.env.AUTH_URL?.startsWith("https") ?? false,
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user

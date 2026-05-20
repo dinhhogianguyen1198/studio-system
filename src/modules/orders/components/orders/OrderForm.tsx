@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,14 @@ const initialState: ActionResult<{ id: string }> = { success: false, error: "" }
 export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng" }: Props) {
   const [state, formAction, isPending] = useActionState(action, initialState)
 
+  const [customerId, setCustomerId] = useState("")
+  const [contactName, setContactName] = useState("")
+  const [contactPhone, setContactPhone] = useState("")
+  const [contactEmail, setContactEmail] = useState("")
+  const [discountAmount, setDiscountAmount] = useState("0")
+  const [notes, setNotes] = useState("")
+  const [internalNotes, setInternalNotes] = useState("")
+
   useEffect(() => {
     if (state.success) toast.success("Tạo đơn hàng thành công")
     else if (!state.success && state.error) toast.error(state.error)
@@ -39,7 +47,12 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
         <label htmlFor="customerId" className="block text-sm font-medium">
           Khách hàng
         </label>
-        <Select name="customerId" id="customerId" defaultValue="">
+        <Select
+          name="customerId"
+          id="customerId"
+          value={customerId}
+          onChange={(e) => setCustomerId(e.target.value)}
+        >
           <option value="">Không liên kết khách hàng</option>
           {customers.map((c) => (
             <option key={c.id} value={c.id}>
@@ -54,13 +67,26 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
           <label htmlFor="contactName" className="block text-sm font-medium">
             Tên liên hệ <span className="text-red-500">*</span>
           </label>
-          <Input id="contactName" name="contactName" placeholder="Nguyễn Văn A" required />
+          <Input
+            id="contactName"
+            name="contactName"
+            placeholder="Nguyễn Văn A"
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            required
+          />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="contactPhone" className="block text-sm font-medium">
             Số điện thoại
           </label>
-          <Input id="contactPhone" name="contactPhone" placeholder="0901234567" />
+          <Input
+            id="contactPhone"
+            name="contactPhone"
+            placeholder="0901234567"
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+          />
         </div>
       </div>
 
@@ -73,6 +99,8 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
           name="contactEmail"
           type="email"
           placeholder="email@example.com"
+          value={contactEmail}
+          onChange={(e) => setContactEmail(e.target.value)}
         />
       </div>
 
@@ -86,7 +114,8 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
           type="number"
           min={0}
           step={1000}
-          defaultValue={0}
+          value={discountAmount}
+          onChange={(e) => setDiscountAmount(e.target.value)}
         />
       </div>
 
@@ -94,7 +123,14 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
         <label htmlFor="notes" className="block text-sm font-medium">
           Ghi chú khách hàng
         </label>
-        <Textarea id="notes" name="notes" placeholder="Yêu cầu của khách hàng..." rows={3} />
+        <Textarea
+          id="notes"
+          name="notes"
+          placeholder="Yêu cầu của khách hàng..."
+          rows={3}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -106,6 +142,8 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
           name="internalNotes"
           placeholder="Ghi chú dành cho nhân viên..."
           rows={2}
+          value={internalNotes}
+          onChange={(e) => setInternalNotes(e.target.value)}
         />
       </div>
 

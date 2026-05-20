@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,22 +18,58 @@ interface Props {
   defaultValues?: Partial<SerializedServiceDefinitionDetail>
   workflowTemplates: WorkflowTemplateSummary[]
   submitLabel?: string
+  onSuccess?: () => void
 }
 
 const initialState: ActionResult<{ id: string }> = { success: false, error: "" }
+
+function formatPrice(raw: string): string {
+  if (!raw) return ""
+  const num = parseInt(raw, 10)
+  if (isNaN(num)) return ""
+  return num.toLocaleString("vi-VN")
+}
 
 export function ServiceDefinitionForm({
   action,
   defaultValues,
   workflowTemplates,
   submitLabel = "Tạo dịch vụ",
+  onSuccess,
 }: Props) {
   const [state, formAction, isPending] = useActionState(action, initialState)
 
+  const [name, setName] = useState(defaultValues?.name ?? "")
+  const [slug, setSlug] = useState(defaultValues?.slug ?? "")
+  const [description, setDescription] = useState(defaultValues?.description ?? "")
+  const [priceRaw, setPriceRaw] = useState(defaultValues?.defaultPrice?.toString() ?? "")
+  const [priceDisplay, setPriceDisplay] = useState(
+    defaultValues?.defaultPrice ? formatPrice(defaultValues.defaultPrice.toString()) : "",
+  )
+  const [durationDays, setDurationDays] = useState(
+    defaultValues?.defaultDurationDays?.toString() ?? "3",
+  )
+  const [slaHours, setSlaHours] = useState(defaultValues?.defaultSlaHours?.toString() ?? "72")
+  const [workflowTemplateId, setWorkflowTemplateId] = useState(
+    defaultValues?.workflowTemplate?.id ?? "",
+  )
+  const [sortOrder, setSortOrder] = useState(defaultValues?.sortOrder?.toString() ?? "0")
+  const [isActive, setIsActive] = useState(defaultValues?.isActive ?? true)
+
   useEffect(() => {
-    if (state.success) toast.success("Lưu thành công")
-    else if (!state.success && state.error) toast.error(state.error)
-  }, [state])
+    if (state.success) {
+      toast.success("Lưu thành công")
+      onSuccess?.()
+    } else if (!state.success && state.error) {
+      toast.error(state.error)
+    }
+  }, [state, onSuccess])
+
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    const digits = e.target.value.replace(/[^\d]/g, "")
+    setPriceRaw(digits)
+    setPriceDisplay(formatPrice(digits))
+  }
 
   return (
     <form action={formAction} className="space-y-6">
@@ -45,7 +81,8 @@ export function ServiceDefinitionForm({
           <Input
             id="name"
             name="name"
-            defaultValue={defaultValues?.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="Ví dụ: Chụp ảnh sản phẩm"
             required
           />
@@ -57,7 +94,8 @@ export function ServiceDefinitionForm({
           <Input
             id="slug"
             name="slug"
-            defaultValue={defaultValues?.slug}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
             placeholder="chup-anh-san-pham"
             className="font-mono"
             required
@@ -72,7 +110,8 @@ export function ServiceDefinitionForm({
         <Textarea
           id="description"
           name="description"
-          defaultValue={defaultValues?.description ?? ""}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="Mô tả chi tiết về dịch vụ..."
           rows={3}
         />
@@ -83,14 +122,14 @@ export function ServiceDefinitionForm({
           <label htmlFor="defaultPrice" className="block text-sm font-medium">
             Giá mặc định (VND) <span className="text-red-500">*</span>
           </label>
+          <input type="hidden" name="defaultPrice" value={priceRaw} />
           <Input
             id="defaultPrice"
-            name="defaultPrice"
-            type="number"
-            min={0}
-            step={1000}
-            defaultValue={defaultValues?.defaultPrice ?? ""}
-            placeholder="1000000"
+            type="text"
+            inputMode="numeric"
+            value={priceDisplay}
+            onChange={handlePriceChange}
+            placeholder="1.000.000"
             required
           />
         </div>
@@ -103,7 +142,8 @@ export function ServiceDefinitionForm({
             name="defaultDurationDays"
             type="number"
             min={1}
-            defaultValue={defaultValues?.defaultDurationDays ?? 3}
+            value={durationDays}
+            onChange={(e) => setDurationDays(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
@@ -115,7 +155,8 @@ export function ServiceDefinitionForm({
             name="defaultSlaHours"
             type="number"
             min={1}
-            defaultValue={defaultValues?.defaultSlaHours ?? 72}
+            value={slaHours}
+            onChange={(e) => setSlaHours(e.target.value)}
           />
         </div>
       </div>
@@ -127,7 +168,8 @@ export function ServiceDefinitionForm({
         <Select
           id="workflowTemplateId"
           name="workflowTemplateId"
-          defaultValue={defaultValues?.workflowTemplate?.id ?? ""}
+          value={workflowTemplateId}
+          onChange={(e) => setWorkflowTemplateId(e.target.value)}
         >
           <option value="">Không gán workflow</option>
           {workflowTemplates.map((tpl) => (
@@ -148,7 +190,8 @@ export function ServiceDefinitionForm({
             name="sortOrder"
             type="number"
             min={0}
-            defaultValue={defaultValues?.sortOrder ?? 0}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
           />
         </div>
         <div className="flex items-end gap-2 pb-1">
@@ -157,7 +200,8 @@ export function ServiceDefinitionForm({
             id="isActive"
             name="isActive"
             value="true"
-            defaultChecked={defaultValues?.isActive ?? true}
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
             className="h-4 w-4"
           />
           <label htmlFor="isActive" className="text-sm font-medium">

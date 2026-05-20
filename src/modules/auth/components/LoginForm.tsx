@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { loginAction } from "../actions/auth.actions"
 import { Button } from "@/components/ui/button"
@@ -14,10 +14,8 @@ const initialState: ActionResult<void> = {
 
 export function LoginForm() {
   const router = useRouter()
-  const [state, formAction, isPending] = useActionState(
-    loginAction,
-    initialState
-  )
+  const [state, formAction, isPending] = useActionState(loginAction, initialState)
+  const [email, setEmail] = useState("")
 
   useEffect(() => {
     if (state.success) {
@@ -42,10 +40,7 @@ export function LoginForm() {
 
       {/* Email */}
       <div className="space-y-1.5">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email
         </label>
         <Input
@@ -54,6 +49,8 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           aria-describedby={fieldErrors?.email ? "email-error" : undefined}
           aria-invalid={!!fieldErrors?.email}
           className={fieldErrors?.email ? "border-red-400" : ""}
@@ -67,10 +64,7 @@ export function LoginForm() {
 
       {/* Mật khẩu */}
       <div className="space-y-1.5">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
           Mật khẩu
         </label>
         <Input
