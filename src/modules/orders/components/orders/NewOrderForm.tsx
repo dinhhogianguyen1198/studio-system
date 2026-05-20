@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
-import { X, ArrowRight, User, CalendarDays, ChevronDown } from "lucide-react"
+import { X, ArrowRight, User, PartyPopper, Plus, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { SerializedServiceDefinitionSummary } from "@/modules/services/types/services.types"
@@ -79,20 +79,15 @@ export function NewOrderForm({ customers, services }: Props) {
 
   // Order items / financials
   const [items, setItems] = useState<OrderItemDraft[]>([])
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [discount, setDiscount] = useState(0)
   const [applyVat, setApplyVat] = useState(false)
 
-  // Status & notes
+  // Order info (party + status + notes)
+  const [partyName, setPartyName] = useState("")
   const [orderStatus, setOrderStatus] = useState("DRAFT")
   const [notes, setNotes] = useState("")
   const [internalNotes, setInternalNotes] = useState("")
-
-  // Schedule dates
-  const [shootingDate, setShootingDate] = useState("")
-  const [rawPhotoSentDate, setRawPhotoSentDate] = useState("")
-  const [selectionDate, setSelectionDate] = useState("")
-  const [editedPhotoSentDate, setEditedPhotoSentDate] = useState("")
-  const [deliveryDate, setDeliveryDate] = useState("")
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const vatAmount = applyVat ? Math.round((subtotal - discount) * VAT_RATE) : 0
@@ -107,7 +102,6 @@ export function NewOrderForm({ customers, services }: Props) {
     }
   }, [state, router])
 
-  // Selecting a CRM customer fills all fields
   function handleSelectCustomer(customer: CustomerOption) {
     setSelectedCustomerId(customer.id)
     setContactName(customer.name)
@@ -116,7 +110,6 @@ export function NewOrderForm({ customers, services }: Props) {
     setContactAddress(customer.address ?? "")
   }
 
-  // Editing any field after linking breaks the CRM link
   function handleNameChange(value: string) {
     if (selectedCustomerId) setSelectedCustomerId("")
     setContactName(value)
@@ -137,15 +130,15 @@ export function NewOrderForm({ customers, services }: Props) {
     setContactAddress(value)
   }
 
-  const itemsForSubmit = items.map(({ _key: _k, serviceName: _n, ...rest }) => rest)
+  const itemsForSubmit = items.map(({ _key: _k, serviceName: _n, defaultDurationDays: _d, ...rest }) => rest)
 
   return (
     <form id={FORM_ID} action={formAction} className="pb-28">
       <input type="hidden" name="itemsJson" value={JSON.stringify(itemsForSubmit)} />
       <input type="hidden" name="customerId" value={selectedCustomerId} />
-      {/* Pass controlled values as hidden inputs since inputs are controlled by state */}
       <input type="hidden" name="contactEmail" value={contactEmail} />
       <input type="hidden" name="newCustomerAddress" value={contactAddress} />
+      <input type="hidden" name="partyName" value={partyName} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
         {/* ── LEFT COLUMN ─────────────────────────────────── */}
@@ -158,7 +151,6 @@ export function NewOrderForm({ customers, services }: Props) {
               title="Thông tin khách hàng"
               subtitle="Nhập tên để tìm khách hàng CRM, hoặc nhập mới để tạo tự động"
             />
-
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -188,7 +180,6 @@ export function NewOrderForm({ customers, services }: Props) {
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label htmlFor="contactEmailDisplay" className={labelClass}>Email</label>
@@ -215,30 +206,53 @@ export function NewOrderForm({ customers, services }: Props) {
             </div>
           </div>
 
-          {/* ── 2. Danh sách sản phẩm / dịch vụ ── */}
+          {/* ── 2. Danh sách dịch vụ ── */}
           <div className={cardClass}>
-            <div className="mb-5 flex items-start justify-between gap-4">
+            {/* Header with inline "Thêm dịch vụ" button */}
+            <div className="mb-5 flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground">Danh sách sản phẩm</h2>
+                <h2 className="text-base font-semibold text-foreground">Danh sách dịch vụ</h2>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {items.length > 0
-                    ? `${items.length} sản phẩm / dịch vụ đã chọn`
-                    : "Thêm sản phẩm hoặc dịch vụ cho đơn hàng"}
+                  {items.length > 0 ? `${items.length} dịch vụ đã chọn` : "Chưa có dịch vụ nào"}
                 </p>
               </div>
-              {items.length > 0 && (
-                <span className="flex-shrink-0 rounded-full bg-secondary px-3 py-1 text-sm font-bold tabular-nums text-secondary-foreground">
-                  {subtotal.toLocaleString("vi-VN")} ₫
-                </span>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(true)}
+                className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Thêm dịch vụ
+              </button>
             </div>
-            <OrderItemsEditor services={services} items={items} onChange={setItems} />
+            <OrderItemsEditor
+              services={services}
+              items={items}
+              onChange={setItems}
+              isPickerOpen={isPickerOpen}
+              onPickerOpenChange={setIsPickerOpen}
+            />
           </div>
 
-          {/* ── 3. Trạng thái & Ghi chú ── */}
+          {/* ── 3. Thông tin đơn hàng ── */}
           <div className={cardClass}>
-            <h2 className="mb-5 text-base font-semibold text-foreground">Trạng thái & Ghi chú</h2>
+            <SectionHeader
+              icon={PartyPopper}
+              title="Thông tin đơn hàng"
+              subtitle="Thông tin chung về sự kiện / tiệc"
+            />
             <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="partyNameInput" className={labelClass}>Tên tiệc</label>
+                <input
+                  id="partyNameInput"
+                  placeholder="VD: Tiệc cưới Anh - Minh, Sinh nhật bé An..."
+                  value={partyName}
+                  onChange={(e) => setPartyName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
               <div className="space-y-1.5">
                 <label htmlFor="orderStatus" className={labelClass}>Trạng thái đơn hàng</label>
                 <div className="relative">
@@ -256,6 +270,7 @@ export function NewOrderForm({ customers, services }: Props) {
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
               </div>
+
               <div className="space-y-1.5">
                 <label htmlFor="notes" className={labelClass}>Ghi chú khách hàng</label>
                 <textarea
@@ -268,6 +283,7 @@ export function NewOrderForm({ customers, services }: Props) {
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
+
               <div className="space-y-1.5">
                 <label htmlFor="internalNotes" className={labelClass}>Ghi chú nội bộ</label>
                 <textarea
@@ -286,35 +302,6 @@ export function NewOrderForm({ customers, services }: Props) {
 
         {/* ── RIGHT COLUMN ────────────────────────────────── */}
         <div className="space-y-6">
-
-          {/* ── Lịch trình đơn hàng ── */}
-          <div className={cardClass}>
-            <SectionHeader icon={CalendarDays} title="Lịch trình đơn hàng" />
-
-            <div className="space-y-4">
-              {[
-                { id: "shootingDate", name: "shootingDate", label: "Ngày chụp", value: shootingDate, onChange: setShootingDate },
-                { id: "rawPhotoSentDate", name: "rawPhotoSentDate", label: "Ngày gửi ảnh gốc", value: rawPhotoSentDate, onChange: setRawPhotoSentDate },
-                { id: "selectionDate", name: "selectionDate", label: "Ngày khách chọn ảnh", value: selectionDate, onChange: setSelectionDate },
-                { id: "editedPhotoSentDate", name: "editedPhotoSentDate", label: "Ngày gửi ảnh chỉnh sửa", value: editedPhotoSentDate, onChange: setEditedPhotoSentDate },
-                { id: "deliveryDate", name: "deliveryDate", label: "Ngày giao ảnh", value: deliveryDate, onChange: setDeliveryDate },
-              ].map(({ id, name, label, value, onChange }) => (
-                <div key={id} className="space-y-1.5">
-                  <label htmlFor={id} className={labelClass}>{label}</label>
-                  <input
-                    id={id}
-                    name={name}
-                    type="date"
-                    className={cn(inputClass, "cursor-pointer")}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Tài chính ── */}
           <FinancialSummaryCard
             subtotal={subtotal}
             discount={discount}

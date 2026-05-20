@@ -9,13 +9,8 @@ import {
   Phone,
   Mail,
   Building2,
-  CalendarDays,
   Tag,
-  Camera,
-  ImageIcon,
-  CheckSquare,
-  Wand2,
-  Package,
+  PartyPopper,
 } from "lucide-react"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { orderService } from "@/modules/orders/service/order.service"
@@ -63,19 +58,6 @@ const SOURCE_LABELS: Record<string, string> = {
   OTHER: "Khác",
 }
 
-function DateRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: Date | null }) {
-  return (
-    <div className="flex items-center justify-between gap-3 py-2 text-sm">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 shrink-0" />
-        <span>{label}</span>
-      </div>
-      <span className={value ? "tabular-nums font-medium text-foreground" : "text-muted-foreground/40"}>
-        {value ? format(new Date(value), "dd/MM/yyyy", { locale: vi }) : "Chưa có"}
-      </span>
-    </div>
-  )
-}
 
 export default async function OrderDetailPage({ params }: Props) {
   await requirePermission("orders", "read")
@@ -124,13 +106,6 @@ export default async function OrderDetailPage({ params }: Props) {
   const serializedItems = order.items.map(serializeOrderItemSummary)
   const serializedServices = activeServices.map(serializeServiceDefinitionSummary)
   const debt = Number(order.totalAmount) - Number(order.paidAmount)
-
-  const hasSchedule =
-    order.shootingDate ??
-    order.rawPhotoSentDate ??
-    order.selectionDate ??
-    order.editedPhotoSentDate ??
-    order.deliveryDate
 
   const hasClassification = order.category ?? order.channel ?? order.source
 
@@ -295,20 +270,37 @@ export default async function OrderDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
-          {/* Lịch trình đơn hàng */}
+          {/* Thông tin đơn hàng */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="size-4 text-primary" />
-                Lịch trình đơn hàng
+                <PartyPopper className="size-4 text-primary" />
+                Thông tin đơn hàng
               </CardTitle>
             </CardHeader>
-            <CardContent className="divide-y divide-border px-4 pt-2">
-              <DateRow icon={Camera} label="Ngày chụp" value={order.shootingDate} />
-              <DateRow icon={ImageIcon} label="Ngày gửi ảnh gốc" value={order.rawPhotoSentDate} />
-              <DateRow icon={CheckSquare} label="Ngày khách chọn ảnh" value={order.selectionDate} />
-              <DateRow icon={Wand2} label="Ngày gửi ảnh chỉnh sửa" value={order.editedPhotoSentDate} />
-              <DateRow icon={Package} label="Ngày giao ảnh" value={order.deliveryDate} />
+            <CardContent className="space-y-3 pt-4 text-sm">
+              {order.partyName && (
+                <div>
+                  <p className="text-muted-foreground mb-0.5 text-xs">Tên tiệc</p>
+                  <p className="font-medium">{order.partyName}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-muted-foreground mb-0.5 text-xs">Trạng thái</p>
+                <OrderStatusBadge status={order.status} />
+              </div>
+              {order.notes && (
+                <div>
+                  <p className="text-muted-foreground mb-0.5 text-xs">Ghi chú khách hàng</p>
+                  <p>{order.notes}</p>
+                </div>
+              )}
+              {order.internalNotes && (
+                <div>
+                  <p className="text-muted-foreground mb-0.5 text-xs">Ghi chú nội bộ</p>
+                  <p>{order.internalNotes}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -383,28 +375,6 @@ export default async function OrderDetailPage({ params }: Props) {
             </Card>
           )}
 
-          {/* Ghi chú */}
-          {(order.notes ?? order.internalNotes) && (
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle>Ghi chú</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-4 text-sm">
-                {order.notes && (
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-xs">Yêu cầu khách hàng</p>
-                    <p>{order.notes}</p>
-                  </div>
-                )}
-                {order.internalNotes && (
-                  <div>
-                    <p className="text-muted-foreground mb-1 text-xs">Nội bộ</p>
-                    <p>{order.internalNotes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

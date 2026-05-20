@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { createLeadAction, updateLeadAction } from "../../actions/lead.actions"
 import type { ActionResult } from "@/shared/types/api.types"
-import type { LeadDetail } from "../../types/crm.types"
+import type { LeadDetail, LeadStatus } from "../../types/crm.types"
 import {
   LEAD_STATUS_LABELS,
   LEAD_PRIORITY_LABELS,
@@ -346,7 +346,7 @@ export function EditLeadForm({
             id="status"
             name="status"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => setStatus(e.target.value as LeadStatus)}
           >
             {Object.entries(LEAD_STATUS_LABELS).map(([val, label]) => (
               <option key={val} value={val}>{label}</option>

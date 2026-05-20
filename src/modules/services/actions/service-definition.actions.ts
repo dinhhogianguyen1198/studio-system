@@ -43,9 +43,9 @@ export async function createServiceDefinitionAction(
 
 export async function updateServiceDefinitionAction(
   id: string,
-  _prevState: ActionResult<void>,
+  _prevState: ActionResult<{ id: string }>,
   formData: FormData,
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<{ id: string }>> {
   const session = await requirePermission("service_catalog", "update")
   const parsed = updateServiceDefinitionSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
@@ -60,8 +60,7 @@ export async function updateServiceDefinitionAction(
       metadata: parsed.data,
     })
     revalidatePath("/dashboard/services")
-    revalidatePath(`/dashboard/services/${id}/edit`)
-    return { success: true, data: undefined }
+    return { success: true, data: { id } }
   } catch (err) {
     const code = err instanceof Error ? err.message : "UNKNOWN"
     return { success: false, error: ERROR_MESSAGES[code] ?? toActionError(err, "Cập nhật thất bại") }

@@ -49,7 +49,6 @@ export function ServiceDefinitionForm({
   const [durationDays, setDurationDays] = useState(
     defaultValues?.defaultDurationDays?.toString() ?? "3",
   )
-  const [slaHours, setSlaHours] = useState(defaultValues?.defaultSlaHours?.toString() ?? "72")
   const [workflowTemplateId, setWorkflowTemplateId] = useState(
     defaultValues?.workflowTemplate?.id ?? "",
   )
@@ -117,7 +116,7 @@ export function ServiceDefinitionForm({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="defaultPrice" className="block text-sm font-medium">
             Giá mặc định (VND) <span className="text-red-500">*</span>
@@ -135,7 +134,7 @@ export function ServiceDefinitionForm({
         </div>
         <div className="space-y-1.5">
           <label htmlFor="defaultDurationDays" className="block text-sm font-medium">
-            Thời lượng (ngày)
+            Thời hạn trả file (ngày)
           </label>
           <Input
             id="defaultDurationDays"
@@ -144,19 +143,6 @@ export function ServiceDefinitionForm({
             min={1}
             value={durationDays}
             onChange={(e) => setDurationDays(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="defaultSlaHours" className="block text-sm font-medium">
-            SLA (giờ)
-          </label>
-          <Input
-            id="defaultSlaHours"
-            name="defaultSlaHours"
-            type="number"
-            min={1}
-            value={slaHours}
-            onChange={(e) => setSlaHours(e.target.value)}
           />
         </div>
       </div>

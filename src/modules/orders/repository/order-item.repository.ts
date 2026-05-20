@@ -13,7 +13,7 @@ export const orderItemRepository = {
     name: string,
     initialStepId: string | null,
   ): Promise<OrderItemSummary> {
-    const { price, quantity, deadline, orderId, serviceDefinitionId, notes } = data
+    const { price, quantity, eventDate, deadline, orderId, serviceDefinitionId, notes } = data
     const totalPrice = price * quantity
     return db.orderItem.create({
       data: {
@@ -23,6 +23,7 @@ export const orderItemRepository = {
         price: new Prisma.Decimal(price),
         quantity,
         totalPrice: new Prisma.Decimal(totalPrice),
+        ...(eventDate && { eventDate }),
         ...(deadline && { deadline }),
         ...(notes && { notes }),
         ...(initialStepId && { currentStepId: initialStepId }),
@@ -32,7 +33,7 @@ export const orderItemRepository = {
   },
 
   async update(id: string, data: UpdateOrderItemDto): Promise<OrderItemSummary> {
-    const { price, quantity, deadline, notes, assignedToId } = data
+    const { price, quantity, eventDate, deadline, notes, assignedToId } = data
     const existing = await db.orderItem.findUniqueOrThrow({
       where: { id },
       select: { price: true, quantity: true },
@@ -45,6 +46,7 @@ export const orderItemRepository = {
         ...(price !== undefined && { price: new Prisma.Decimal(price) }),
         ...(quantity !== undefined && { quantity }),
         totalPrice: new Prisma.Decimal(newPrice * newQty),
+        ...(eventDate !== undefined && { eventDate: eventDate ?? null }),
         ...(deadline !== undefined && { deadline: deadline ?? null }),
         ...(notes !== undefined && { notes }),
         ...(assignedToId !== undefined && { assignedToId: assignedToId || null }),

@@ -232,6 +232,13 @@ src/modules/<feature>/components/
 - **Không viết inline style**. Dùng Tailwind utility classes.
 - **Không hard-code text** — dùng constants hoặc i18n keys.
 
+### Quy tắc Dialog / Popup
+
+- **`DialogTitle` phải to hơn và đậm hơn các field trong form.** Tiêu đề popup dùng `text-xl font-bold` — đã được set sẵn trong `src/components/ui/dialog.tsx`. **Không override** className làm nhỏ lại title.
+- Dùng `DialogDescription` cho subtitle / mô tả ngắn bên dưới title.
+- Màn hình tạo mới và chỉnh sửa entity PHẢI dùng Dialog, không dùng trang riêng (`/new`, `/[id]/edit`).
+- Dialog quản lý state `open` tại component cha; đóng dialog khi action thành công qua callback `onSuccess`.
+
 ### Pattern cho Client Component nhận Server Action
 
 ```typescript

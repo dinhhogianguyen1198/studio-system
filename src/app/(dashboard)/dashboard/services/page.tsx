@@ -23,7 +23,7 @@ export default async function ServicesPage() {
         <CreateServiceDefinitionDialog workflowTemplates={workflowTemplates} />
       </div>
 
-      <ServiceDefinitionTable services={services} />
+      <ServiceDefinitionTable services={services} workflowTemplates={workflowTemplates} />
     </div>
   )
 }

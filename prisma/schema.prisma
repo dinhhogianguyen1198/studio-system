@@ -327,6 +327,8 @@ model Order {
   totalAmount   Decimal        @default(0) @db.Decimal(15, 2)
   paidAmount    Decimal        @default(0) @db.Decimal(15, 2)
   currency      String         @default("VND")
+  // ── Thông tin tiệc ──
+  partyName   String?
   // ── Lịch trình sản xuất ──
   shootingDate        DateTime?
   rawPhotoSentDate    DateTime?
@@ -376,6 +378,7 @@ model OrderItem {
   price               Decimal                @db.Decimal(15, 2)
   quantity            Int                    @default(1)
   totalPrice          Decimal                @db.Decimal(15, 2)
+  eventDate           DateTime?
   deadline            DateTime?
   currentStepId       String?
   currentStep         WorkflowStep?          @relation("CurrentStep", fields: [currentStepId], references: [id], onDelete: SetNull)

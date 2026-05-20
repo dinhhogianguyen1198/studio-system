@@ -4,7 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import { Calendar, Trash2, User } from "lucide-react"
+import { Calendar, CalendarCheck, Trash2, User } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import type { SerializedOrderItemSummary } from "../../types/orders.types"
 import { removeOrderItemAction } from "../../actions/order-item.actions"
+import { EditOrderItemDialog } from "./EditOrderItemDialog"
 import { WorkflowStepTransitionButtons } from "@/modules/workflow/components/WorkflowStepTransitionButtons"
 import type React from "react"
 
@@ -69,15 +70,20 @@ export function OrderItemCard({
                 {item.serviceDefinition.name}
               </Badge>
             </div>
-            <div className="text-muted-foreground flex items-center gap-4 text-sm">
-              <span>
-                {Number(item.price).toLocaleString("vi-VN")} × {item.quantity} ={" "}
-                <strong>{Number(item.totalPrice).toLocaleString("vi-VN")} VND</strong>
+            <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <span className="font-medium text-foreground">
+                {Number(item.price).toLocaleString("vi-VN")} ₫
               </span>
-              {item.deadline && (
+              {item.eventDate && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  {format(new Date(item.deadline), "dd/MM/yyyy HH:mm", { locale: vi })}
+                  {format(new Date(item.eventDate), "dd/MM/yyyy", { locale: vi })}
+                </span>
+              )}
+              {item.deadline && (
+                <span className="flex items-center gap-1">
+                  <CalendarCheck className="h-3 w-3" />
+                  {format(new Date(item.deadline), "dd/MM/yyyy", { locale: vi })}
                 </span>
               )}
               {item.assignedTo && (
@@ -93,6 +99,7 @@ export function OrderItemCard({
             {item.currentStep && (
               <Badge variant="outline">{item.currentStep.name}</Badge>
             )}
+            <EditOrderItemDialog item={item} orderId={orderId} />
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">

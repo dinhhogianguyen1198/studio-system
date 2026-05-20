@@ -22,9 +22,10 @@ export const orderItemSummarySelect = {
   price: true,
   quantity: true,
   totalPrice: true,
+  eventDate: true,
   deadline: true,
   notes: true,
-  serviceDefinition: { select: { id: true, name: true } },
+  serviceDefinition: { select: { id: true, name: true, defaultDurationDays: true } },
   currentStep: { select: { id: true, key: true, name: true, color: true, isFinal: true } },
   assignedTo: { select: { id: true, name: true } },
 } satisfies Prisma.OrderItemSelect
@@ -53,6 +54,7 @@ export const orderDetailSelect = {
   category: true,
   channel: true,
 
+  partyName: true,
   source: true,
   confirmedAt: true,
   completedAt: true,
@@ -149,6 +151,8 @@ export interface CreateOrderDto {
   internalNotes?: string
   discountAmount?: number
   status?: "DRAFT" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
+  // Thông tin tiệc
+  partyName?: string
   // Schedule
   shootingDate?: Date
   rawPhotoSentDate?: Date
@@ -171,6 +175,7 @@ export interface AddOrderItemDto {
   serviceDefinitionId: string
   price: number
   quantity: number
+  eventDate?: Date
   deadline?: Date
   notes?: string
 }
@@ -178,7 +183,8 @@ export interface AddOrderItemDto {
 export interface UpdateOrderItemDto {
   price?: number
   quantity?: number
-  deadline?: Date
+  eventDate?: Date | null
+  deadline?: Date | null
   notes?: string
   assignedToId?: string
 }

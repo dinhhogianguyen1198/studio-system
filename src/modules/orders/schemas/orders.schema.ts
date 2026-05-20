@@ -9,6 +9,12 @@ const optionalDate = z
   .optional()
   .transform((v) => (v === "" ? undefined : v))
 
+// For update forms: empty string → null (explicitly clear the date field)
+const nullableDate = z
+  .union([z.coerce.date(), z.literal("")])
+  .optional()
+  .transform((v) => (v === "" ? null : v))
+
 const orderStatusEnum = z.enum(["DRAFT", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
 
 export const createOrderSchema = z.object({
@@ -20,6 +26,8 @@ export const createOrderSchema = z.object({
   internalNotes: z.string().max(2000).optional(),
   discountAmount: z.coerce.number().min(0).optional(),
   status: orderStatusEnum.optional(),
+  // Thông tin tiệc
+  partyName: z.preprocess(emptyToUndefined, z.string().max(200).optional()),
   // Schedule
   shootingDate: optionalDate,
   rawPhotoSentDate: optionalDate,
@@ -47,7 +55,8 @@ export const addOrderItemSchema = z.object({
 export const updateOrderItemSchema = z.object({
   price: z.coerce.number().min(0).optional(),
   quantity: z.coerce.number().int().min(1).optional(),
-  deadline: z.coerce.date().optional(),
+  eventDate: nullableDate,
+  deadline: nullableDate,
   notes: z.string().max(1000).optional(),
   assignedToId: z.string().cuid().optional().or(z.literal("")),
 })
@@ -66,6 +75,7 @@ export const orderItemInputSchema = z.object({
   serviceDefinitionId: z.string().cuid("ID dịch vụ không hợp lệ"),
   price: z.coerce.number().min(0, "Giá không hợp lệ"),
   quantity: z.coerce.number().int().min(1, "Số lượng tối thiểu là 1"),
+  eventDate: z.coerce.date().optional(),
   deadline: z.coerce.date().optional(),
   notes: z.string().max(1000).optional(),
 })
