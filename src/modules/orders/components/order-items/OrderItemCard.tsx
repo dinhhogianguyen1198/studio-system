@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import { Calendar, CalendarCheck, Trash2, User } from "lucide-react"
+import { Calendar, CalendarCheck, CheckCheck, MapPin, RotateCcw, Trash2, User } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -18,8 +18,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import type { SerializedOrderItemSummary } from "../../types/orders.types"
-import { removeOrderItemAction } from "../../actions/order-item.actions"
+import { removeOrderItemAction, updateOrderItemDeliveryStatusAction } from "../../actions/order-item.actions"
 import { EditOrderItemDialog } from "./EditOrderItemDialog"
+import { OrderItemDeliveryBadge } from "./OrderItemDeliveryBadge"
 import { WorkflowStepTransitionButtons } from "@/modules/workflow/components/WorkflowStepTransitionButtons"
 import type React from "react"
 
@@ -45,18 +46,33 @@ export function OrderItemCard({
   workflowTimeline,
 }: Props) {
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [isPending, setIsPending] = useState(false)
+  const [isDeletePending, setIsDeletePending] = useState(false)
+  const [isDeliveryPending, startDeliveryTransition] = useTransition()
 
   async function handleDelete() {
-    setIsPending(true)
+    setIsDeletePending(true)
     const result = await removeOrderItemAction(item.id, orderId)
-    setIsPending(false)
+    setIsDeletePending(false)
     if (result.success) {
       toast.success(`Đã xóa dịch vụ "${item.name}"`)
       setDeleteOpen(false)
     } else {
       toast.error(result.error)
     }
+  }
+
+  function handleToggleDelivery() {
+    const next = item.deliveryStatus === "DELIVERED" ? "PENDING" : "DELIVERED"
+    startDeliveryTransition(async () => {
+      const result = await updateOrderItemDeliveryStatusAction(item.id, orderId, next)
+      if (result.success) {
+        toast.success(
+          next === "DELIVERED" ? "Đã đánh dấu giao file" : "Đã hoàn tác trạng thái giao file",
+        )
+      } else {
+        toast.error(result.error)
+      }
+    })
   }
 
   return (
@@ -115,8 +131,8 @@ export function OrderItemCard({
                 </DialogHeader>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setDeleteOpen(false)}>Hủy</Button>
-                  <Button variant="destructive" onClick={handleDelete} disabled={isPending}>
-                    {isPending ? "Đang xóa..." : "Xóa"}
+                  <Button variant="destructive" onClick={handleDelete} disabled={isDeletePending}>
+                    {isDeletePending ? "Đang xóa..." : "Xóa"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -126,6 +142,42 @@ export function OrderItemCard({
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {/* Delivery status row */}
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Giao file:</span>
+            <OrderItemDeliveryBadge
+              deliveryStatus={item.deliveryStatus}
+              deadline={item.deadline}
+            />
+          </div>
+          <Button
+            size="sm"
+            variant={item.deliveryStatus === "DELIVERED" ? "outline" : "default"}
+            disabled={isDeliveryPending}
+            onClick={handleToggleDelivery}
+            className="h-7 px-3 text-xs"
+          >
+            {item.deliveryStatus === "DELIVERED" ? (
+              <>
+                <RotateCcw className="mr-1.5 h-3 w-3" />
+                Hoàn tác
+              </>
+            ) : (
+              <>
+                <CheckCheck className="mr-1.5 h-3 w-3" />
+                Đánh dấu đã giao
+              </>
+            )}
+          </Button>
+        </div>
+
+        {item.location && (
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            {item.location}
+          </p>
+        )}
         {item.notes && <p className="text-muted-foreground text-sm">{item.notes}</p>}
 
         {availableTransitions.length > 0 && (

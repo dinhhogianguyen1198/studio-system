@@ -14,6 +14,8 @@ export default async function OrdersPage({ searchParams }: Props) {
   await requirePermission("orders", "read")
   const { page, status, search } = await searchParams
 
+  await orderService.autoUpdateOrderStatuses()
+
   const currentPage = Number(page ?? 1)
   const { data, total } = await orderService.findMany({
     page: currentPage,

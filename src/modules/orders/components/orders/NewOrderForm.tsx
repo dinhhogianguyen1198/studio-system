@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
-import { X, ArrowRight, User, PartyPopper, Plus, ChevronDown } from "lucide-react"
+import { X, ArrowRight, User, PartyPopper, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { SerializedServiceDefinitionSummary } from "@/modules/services/types/services.types"
@@ -31,16 +31,6 @@ const cardClass = "rounded-xl bg-card p-6 border border-border"
 const textareaClass =
   "w-full resize-none rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition-all focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
 
-const selectClass =
-  "h-9 w-full appearance-none rounded-lg border border-border bg-card px-3.5 pr-10 text-sm font-medium text-foreground transition-all focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-
-const ORDER_STATUS_OPTIONS = [
-  { value: "DRAFT", label: "Mới tạo" },
-  { value: "CONFIRMED", label: "Đã xác nhận" },
-  { value: "IN_PROGRESS", label: "Đang thực hiện" },
-  { value: "COMPLETED", label: "Hoàn thành" },
-  { value: "CANCELLED", label: "Đã hủy" },
-]
 
 const initialState: ActionResult<{ id: string }> = { success: false, error: "" }
 
@@ -83,9 +73,8 @@ export function NewOrderForm({ customers, services }: Props) {
   const [discount, setDiscount] = useState(0)
   const [applyVat, setApplyVat] = useState(false)
 
-  // Order info (party + status + notes)
+  // Order info (party + notes)
   const [partyName, setPartyName] = useState("")
-  const [orderStatus, setOrderStatus] = useState("DRAFT")
   const [notes, setNotes] = useState("")
   const [internalNotes, setInternalNotes] = useState("")
 
@@ -206,35 +195,7 @@ export function NewOrderForm({ customers, services }: Props) {
             </div>
           </div>
 
-          {/* ── 2. Danh sách dịch vụ ── */}
-          <div className={cardClass}>
-            {/* Header with inline "Thêm dịch vụ" button */}
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">Danh sách dịch vụ</h2>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {items.length > 0 ? `${items.length} dịch vụ đã chọn` : "Chưa có dịch vụ nào"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPickerOpen(true)}
-                className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Thêm dịch vụ
-              </button>
-            </div>
-            <OrderItemsEditor
-              services={services}
-              items={items}
-              onChange={setItems}
-              isPickerOpen={isPickerOpen}
-              onPickerOpenChange={setIsPickerOpen}
-            />
-          </div>
-
-          {/* ── 3. Thông tin đơn hàng ── */}
+          {/* ── 2. Thông tin đơn hàng ── */}
           <div className={cardClass}>
             <SectionHeader
               icon={PartyPopper}
@@ -251,24 +212,6 @@ export function NewOrderForm({ customers, services }: Props) {
                   onChange={(e) => setPartyName(e.target.value)}
                   className={inputClass}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor="orderStatus" className={labelClass}>Trạng thái đơn hàng</label>
-                <div className="relative">
-                  <select
-                    id="orderStatus"
-                    name="status"
-                    className={cn(selectClass, "font-semibold")}
-                    value={orderStatus}
-                    onChange={(e) => setOrderStatus(e.target.value)}
-                  >
-                    {ORDER_STATUS_OPTIONS.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -298,6 +241,35 @@ export function NewOrderForm({ customers, services }: Props) {
               </div>
             </div>
           </div>
+
+          {/* ── 3. Danh sách dịch vụ ── */}
+          <div className={cardClass}>
+            {/* Header with inline "Thêm dịch vụ" button */}
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Danh sách dịch vụ</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {items.length > 0 ? `${items.length} dịch vụ đã chọn` : "Chưa có dịch vụ nào"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(true)}
+                className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Thêm dịch vụ
+              </button>
+            </div>
+            <OrderItemsEditor
+              services={services}
+              items={items}
+              onChange={setItems}
+              isPickerOpen={isPickerOpen}
+              onPickerOpenChange={setIsPickerOpen}
+            />
+          </div>
+
         </div>
 
         {/* ── RIGHT COLUMN ────────────────────────────────── */}

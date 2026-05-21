@@ -9,12 +9,16 @@ import type { ActionResult } from "@/shared/types/api.types"
 import { orderService } from "../service/order.service"
 import { orderItemService } from "../service/order-item.service"
 import { customerService } from "@/modules/crm/service/customer.service"
-import { createOrderSchema, updateOrderSchema, createOrderWithItemsSchema, orderItemInputSchema } from "../schemas/orders.schema"
+import {
+  createOrderSchema,
+  updateOrderSchema,
+  createOrderWithItemsSchema,
+  orderItemInputSchema,
+} from "../schemas/orders.schema"
 
 const ERROR_MESSAGES: Record<string, string> = {
   ORDER_NOT_FOUND: "Đơn hàng không tồn tại",
-  ORDER_ALREADY_CONFIRMED: "Đơn hàng đã được xác nhận",
-  ORDER_CANNOT_BE_DELETED: "Chỉ có thể xóa đơn nháp hoặc đã hủy",
+  ORDER_CANNOT_BE_DELETED: "Chỉ có thể xóa đơn Mới tạo hoặc Hoàn thành",
 }
 
 export async function createOrderAction(
@@ -62,7 +66,6 @@ export async function createOrderWithItemsAction(
   }
 
   try {
-    // Auto-create CRM customer from contact info when no existing customer is linked
     let customerId = orderData.customerId || undefined
     if (!customerId && orderData.contactName) {
       const customer = await customerService.createCustomer(
@@ -124,46 +127,6 @@ export async function updateOrderAction(
   } catch (err) {
     const code = err instanceof Error ? err.message : "UNKNOWN"
     return { success: false, error: ERROR_MESSAGES[code] ?? toActionError(err, "Cập nhật thất bại") }
-  }
-}
-
-export async function confirmOrderAction(id: string): Promise<ActionResult<void>> {
-  const session = await requirePermission("orders", "update")
-  try {
-    await orderService.confirm(id)
-    await writeAuditLog({
-      userId: session.user.id,
-      action: "UPDATE",
-      resource: "orders",
-      resourceId: id,
-      metadata: { action: "CONFIRM" },
-    })
-    revalidatePath(`/dashboard/orders/${id}`)
-    revalidatePath("/dashboard/orders")
-    return { success: true, data: undefined }
-  } catch (err) {
-    const code = err instanceof Error ? err.message : "UNKNOWN"
-    return { success: false, error: ERROR_MESSAGES[code] ?? toActionError(err, "Xác nhận đơn thất bại") }
-  }
-}
-
-export async function cancelOrderAction(id: string): Promise<ActionResult<void>> {
-  const session = await requirePermission("orders", "update")
-  try {
-    await orderService.cancel(id)
-    await writeAuditLog({
-      userId: session.user.id,
-      action: "UPDATE",
-      resource: "orders",
-      resourceId: id,
-      metadata: { action: "CANCEL" },
-    })
-    revalidatePath(`/dashboard/orders/${id}`)
-    revalidatePath("/dashboard/orders")
-    return { success: true, data: undefined }
-  } catch (err) {
-    const code = err instanceof Error ? err.message : "UNKNOWN"
-    return { success: false, error: ERROR_MESSAGES[code] ?? toActionError(err, "Hủy đơn thất bại") }
   }
 }
 

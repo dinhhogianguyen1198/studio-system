@@ -11,6 +11,7 @@ import {
   GitBranch,
   HardHat,
   Wallet,
+  Boxes,
   type LucideIcon,
 } from "lucide-react"
 import type { Resource, Action } from "@/shared/types/rbac.types"
@@ -84,21 +85,21 @@ export const navItems: NavItem[] = [
   // ── Quản trị ──────────────────────────────────────────────────────────────────
   {
     title: "Người dùng",
-    href: "/dashboard/admin/users",
+    href: "/dashboard/settings/users",
     icon: Users,
     permission: { resource: "users", action: "read" },
     section: "Quản trị",
   },
   {
     title: "Vai trò",
-    href: "/dashboard/admin/roles",
+    href: "/dashboard/settings/roles",
     icon: ShieldCheck,
     permission: { resource: "roles", action: "read" },
     section: "Quản trị",
   },
   {
     title: "Quyền hạn",
-    href: "/dashboard/admin/permissions",
+    href: "/dashboard/settings/permissions",
     icon: UserCog,
     permission: { resource: "permissions", action: "read" },
     section: "Quản trị",
@@ -108,6 +109,13 @@ export const navItems: NavItem[] = [
     href: "/dashboard/admin/audit-logs",
     icon: FileText,
     permission: { resource: "audit_logs", action: "read" },
+    section: "Quản trị",
+  },
+  {
+    title: "Đơn vị quản lý đơn hàng",
+    href: "/dashboard/settings/order-management-units",
+    icon: Boxes,
+    permission: { resource: "order_management_units", action: "read" },
     section: "Quản trị",
   },
   {

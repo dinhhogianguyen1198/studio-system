@@ -4,21 +4,15 @@ import { format } from "date-fns"
 import { vi } from "date-fns/locale"
 import {
   ArrowLeft,
-  Pencil,
-  User,
-  Phone,
-  Mail,
-  Building2,
-  Tag,
   PartyPopper,
+  AlertTriangle,
 } from "lucide-react"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { orderService } from "@/modules/orders/service/order.service"
-import { serviceDefinitionService } from "@/modules/services/service/service-definition.service"
 import { db } from "@/shared/lib/prisma"
 import { OrderStatusBadge } from "@/modules/orders/components/orders/OrderStatusBadge"
+import { OrderDetailInfoForm } from "@/modules/orders/components/orders/OrderDetailInfoForm"
 import { OrderItemCard } from "@/modules/orders/components/order-items/OrderItemCard"
-import { AddOrderItemDialog } from "@/modules/orders/components/order-items/AddOrderItemDialog"
 import { WorkflowTimeline } from "@/modules/workflow/components/WorkflowTimeline"
 import { RecordPaymentDialog } from "@/modules/orders/components/payments/RecordPaymentDialog"
 import { Button } from "@/components/ui/button"
@@ -31,7 +25,6 @@ import {
   type OrderItemSummary,
   type SerializedOrderItemSummary,
 } from "@/modules/orders/types/orders.types"
-import { serializeServiceDefinitionSummary } from "@/modules/services/types/services.types"
 import { workerAssignmentService } from "@/modules/workforce/service/worker-assignment.service"
 import { workerService } from "@/modules/workforce/service/worker.service"
 import { serializeOrderItemWorker } from "@/modules/workforce/types/workforce.types"
@@ -49,23 +42,12 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-const SOURCE_LABELS: Record<string, string> = {
-  DIRECT: "Trực tiếp",
-  REFERRAL: "Giới thiệu",
-  SOCIAL_MEDIA: "Mạng xã hội",
-  WEBSITE: "Website",
-  EVENT: "Sự kiện",
-  OTHER: "Khác",
-}
-
-
 export default async function OrderDetailPage({ params }: Props) {
   await requirePermission("orders", "read")
   const { id } = await params
 
-  const [order, activeServices, activeWorkers] = await Promise.all([
+  const [order, activeWorkers] = await Promise.all([
     orderService.findById(id).catch(() => null),
-    serviceDefinitionService.findAllActive(),
     workerService.getAllActiveWorkers(),
   ])
   if (!order) notFound()
@@ -104,10 +86,7 @@ export default async function OrderDetailPage({ params }: Props) {
   )
 
   const serializedItems = order.items.map(serializeOrderItemSummary)
-  const serializedServices = activeServices.map(serializeServiceDefinitionSummary)
   const debt = Number(order.totalAmount) - Number(order.paidAmount)
-
-  const hasClassification = order.category ?? order.channel ?? order.source
 
   return (
     <div className="space-y-6">
@@ -123,7 +102,7 @@ export default async function OrderDetailPage({ params }: Props) {
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <h1 className="font-mono text-2xl font-bold">{order.orderNumber}</h1>
@@ -139,13 +118,15 @@ export default async function OrderDetailPage({ params }: Props) {
             {order.createdBy.name}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/dashboard/orders/${order.id}/edit`}>
-            <Pencil className="mr-2 size-3.5" />
-            Chỉnh sửa
-          </Link>
-        </Button>
       </div>
+
+      {/* Overdue alert */}
+      {order.status === "OVERDUE" && (
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>Có dịch vụ trong đơn đang trễ hạn giao file.</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left — services + workforce */}
@@ -153,10 +134,7 @@ export default async function OrderDetailPage({ params }: Props) {
           {/* Danh sách sản phẩm */}
           <Card>
             <CardHeader className="border-b">
-              <div className="flex items-center justify-between">
-                <CardTitle>Danh sách sản phẩm ({serializedItems.length})</CardTitle>
-                <AddOrderItemDialog orderId={order.id} services={serializedServices} />
-              </div>
+              <CardTitle>Danh sách sản phẩm ({serializedItems.length})</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               {serializedItems.length === 0 ? (
@@ -191,86 +169,10 @@ export default async function OrderDetailPage({ params }: Props) {
             currency={order.currency}
             orderStatus={order.status}
           />
-
-          {/* Phân loại (if any data) */}
-          {hasClassification && (
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="size-4 text-muted-foreground" />
-                  Phân loại đơn hàng
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                  {order.category && (
-                    <>
-                      <dt className="text-muted-foreground">Hạng mục</dt>
-                      <dd className="font-medium">{order.category}</dd>
-                    </>
-                  )}
-                  {order.channel && (
-                    <>
-                      <dt className="text-muted-foreground">Kênh kết nối</dt>
-                      <dd className="font-medium">{order.channel}</dd>
-                    </>
-                  )}
-
-                  {order.source && (
-                    <>
-                      <dt className="text-muted-foreground">Nguồn khách hàng</dt>
-                      <dd className="font-medium">{SOURCE_LABELS[order.source] ?? order.source}</dd>
-                    </>
-                  )}
-                </dl>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Right — sidebar */}
         <div className="space-y-4">
-          {/* Thông tin khách hàng */}
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle className="flex items-center gap-2">
-                <User className="size-4 text-primary" />
-                Thông tin khách hàng
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 pt-4 text-sm">
-              {order.customer && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="text-muted-foreground size-3.5 shrink-0" />
-                  <Link
-                    href={`/dashboard/customers/${order.customer.id}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {order.customer.name}
-                  </Link>
-                </div>
-              )}
-              {order.contactName !== order.customer?.name && (
-                <div className="flex items-center gap-2">
-                  <User className="text-muted-foreground size-3.5 shrink-0" />
-                  <span>{order.contactName}</span>
-                </div>
-              )}
-              {order.contactPhone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="text-muted-foreground size-3.5 shrink-0" />
-                  <span>{order.contactPhone}</span>
-                </div>
-              )}
-              {order.contactEmail && (
-                <div className="flex items-center gap-2">
-                  <Mail className="text-muted-foreground size-3.5 shrink-0" />
-                  <span className="break-all">{order.contactEmail}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Thông tin đơn hàng */}
           <Card>
             <CardHeader className="border-b">
@@ -279,29 +181,15 @@ export default async function OrderDetailPage({ params }: Props) {
                 Thông tin đơn hàng
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 pt-4 text-sm">
-              {order.partyName && (
-                <div>
-                  <p className="text-muted-foreground mb-0.5 text-xs">Tên tiệc</p>
-                  <p className="font-medium">{order.partyName}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-muted-foreground mb-0.5 text-xs">Trạng thái</p>
-                <OrderStatusBadge status={order.status} />
-              </div>
-              {order.notes && (
-                <div>
-                  <p className="text-muted-foreground mb-0.5 text-xs">Ghi chú khách hàng</p>
-                  <p>{order.notes}</p>
-                </div>
-              )}
-              {order.internalNotes && (
-                <div>
-                  <p className="text-muted-foreground mb-0.5 text-xs">Ghi chú nội bộ</p>
-                  <p>{order.internalNotes}</p>
-                </div>
-              )}
+            <CardContent className="pt-4">
+              <OrderDetailInfoForm
+                orderId={order.id}
+                defaultValues={{
+                  partyName: order.partyName,
+                  notes: order.notes,
+                  internalNotes: order.internalNotes,
+                }}
+              />
             </CardContent>
           </Card>
 
@@ -375,7 +263,6 @@ export default async function OrderDetailPage({ params }: Props) {
               </CardContent>
             </Card>
           )}
-
         </div>
       </div>
     </div>

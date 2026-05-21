@@ -70,4 +70,19 @@ export const orderItemRepository = {
       data: { assignedToId: assignedToId || null },
     })
   },
+
+  async updateDeliveryStatus(
+    id: string,
+    deliveryStatus: "PENDING" | "DELIVERED",
+  ): Promise<{ orderId: string }> {
+    const item = await db.orderItem.update({
+      where: { id },
+      data: {
+        deliveryStatus,
+        fileDeliveredAt: deliveryStatus === "DELIVERED" ? new Date() : null,
+      },
+      select: { orderId: true },
+    })
+    return { orderId: item.orderId }
+  },
 }

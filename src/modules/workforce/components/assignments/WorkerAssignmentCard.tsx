@@ -3,8 +3,6 @@
 import { useTransition } from "react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Trash2 } from "lucide-react"
 import { removeAssignmentAction } from "@/modules/workforce/actions/worker-assignment.actions"
 import {
@@ -27,8 +25,10 @@ export function WorkerAssignmentCard({ assignment, orderCancelled = false }: Pro
     .join("")
     .toUpperCase()
 
-  const formatCurrency = (amount: unknown) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(Number(amount))
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n)
+
+  const rateLabel = RATE_TYPE_LABELS[assignment.rateTypeSnapshot as keyof typeof RATE_TYPE_LABELS]
 
   function handleRemove() {
     startTransition(async () => {
@@ -42,52 +42,37 @@ export function WorkerAssignmentCard({ assignment, orderCancelled = false }: Pro
   }
 
   return (
-    <Card className="relative">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarImage src={assignment.worker.avatarUrl ?? undefined} />
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="font-medium truncate">{assignment.worker.name}</p>
-              <p className="text-xs text-muted-foreground">{assignment.jobTypeNameSnapshot}</p>
-            </div>
-          </div>
-          {!orderCancelled && !assignment.paidAt && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
-              disabled={isPending}
-              onClick={handleRemove}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
+      <Avatar className="h-8 w-8 flex-shrink-0">
+        <AvatarImage src={assignment.worker.avatarUrl ?? undefined} />
+        <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+      </Avatar>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs">Mức lương</p>
-            <p className="font-medium">
-              {formatCurrency(assignment.rateAmountSnapshot)} /{" "}
-              {RATE_TYPE_LABELS[assignment.rateTypeSnapshot as keyof typeof RATE_TYPE_LABELS]}
-            </p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Số lượng × Đơn giá</p>
-            <p className="font-medium">
-              {Number(assignment.quantity)} × {formatCurrency(assignment.rateAmountSnapshot)}
-            </p>
-          </div>
-          <div className="col-span-2">
-            <p className="text-muted-foreground text-xs">Tổng chi phí</p>
-            <p className="font-semibold text-base">{formatCurrency(assignment.totalCost)}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-foreground">{assignment.worker.name}</p>
+        <p className="text-xs text-muted-foreground">{assignment.jobTypeNameSnapshot}</p>
+      </div>
+
+      <div className="flex-shrink-0 text-right">
+        <p className="text-sm font-semibold tabular-nums text-foreground">
+          {fmt(assignment.totalCost)}
+        </p>
+        <p className="text-xs text-muted-foreground tabular-nums">
+          {Number(assignment.quantity)} × {fmt(Number(assignment.rateAmountSnapshot))} /{" "}
+          {rateLabel}
+        </p>
+      </div>
+
+      {!orderCancelled && !assignment.paidAt && (
+        <button
+          type="button"
+          onClick={handleRemove}
+          disabled={isPending}
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
   )
 }

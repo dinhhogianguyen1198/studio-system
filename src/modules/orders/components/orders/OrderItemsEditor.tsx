@@ -14,6 +14,7 @@ export interface OrderItemDraft {
   eventDate?: string
   deadline?: string
   notes?: string
+  location?: string
 }
 
 // ─── Service Picker Dialog ────────────────────────────────────────────────────
@@ -205,6 +206,18 @@ function OrderItemCard({ item, onRemove, onUpdate }: OrderItemCardProps) {
               "cursor-pointer",
               isDeadlineAutoCalc && "bg-muted text-muted-foreground",
             )}
+          />
+        </div>
+
+        {/* Địa điểm */}
+        <div className="col-span-3 space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Địa điểm</label>
+          <input
+            type="text"
+            value={item.location ?? ""}
+            onChange={(e) => onUpdate(item._key, { location: e.target.value || undefined })}
+            placeholder="VD: Hội trường A, Nhà hàng ABC, Quận 1..."
+            className={cn(fieldInputClass, "placeholder:text-muted-foreground")}
           />
         </div>
 

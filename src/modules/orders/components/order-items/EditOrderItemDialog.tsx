@@ -51,6 +51,7 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
   const [eventDate, setEventDate] = useState(toDateInput(item.eventDate))
   const [deadline, setDeadline] = useState(toDateInput(item.deadline))
   const [notes, setNotes] = useState(item.notes ?? "")
+  const [itemLocation, setItemLocation] = useState(item.location ?? "")
 
   const isDeadlineAutoCalc = !!eventDate && durationDays != null
 
@@ -82,6 +83,7 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
       setEventDate(toDateInput(item.eventDate))
       setDeadline(toDateInput(item.deadline))
       setNotes(item.notes ?? "")
+      setItemLocation(item.location ?? "")
     }
     setOpen(next)
   }
@@ -148,6 +150,19 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
                 )}
               />
             </div>
+          </div>
+
+          {/* Địa điểm */}
+          <div className="space-y-1.5">
+            <label className={labelClass}>Địa điểm</label>
+            <input
+              type="text"
+              name="location"
+              value={itemLocation}
+              onChange={(e) => setItemLocation(e.target.value)}
+              placeholder="VD: Hội trường A, Nhà hàng ABC..."
+              className={fieldClass}
+            />
           </div>
 
           {/* Ghi chú */}

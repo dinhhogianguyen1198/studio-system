@@ -3,13 +3,18 @@ import { db } from "../client"
 interface SeedRole {
   name: string
   description: string
+  isSystem: boolean
   permissions: Array<{ action: string; resource: string }>
 }
+
+// ─── Role definitions ─────────────────────────────────────────────────────────
+// isSystem=true: role không thể bị xóa hay đổi tên qua UI
 
 const ROLES: SeedRole[] = [
   {
     name: "owner",
     description: "Owner — toàn quyền tuyệt đối, không thể bị thu hồi",
+    isSystem: true,
     permissions: [
       { action: "manage", resource: "users" },
       { action: "manage", resource: "roles" },
@@ -30,11 +35,13 @@ const ROLES: SeedRole[] = [
       { action: "manage", resource: "workforce_job_types" },
       { action: "manage", resource: "workforce_assignments" },
       { action: "manage", resource: "workforce_payroll" },
+      { action: "manage", resource: "order_management_units" },
     ],
   },
   {
     name: "admin",
-    description: "Quản trị viên — toàn quyền hệ thống, trừ audit_logs",
+    description: "Quản trị viên — toàn quyền hệ thống, có thể đọc audit_logs",
+    isSystem: true,
     permissions: [
       { action: "manage", resource: "users" },
       { action: "manage", resource: "roles" },
@@ -55,11 +62,13 @@ const ROLES: SeedRole[] = [
       { action: "manage", resource: "workforce_job_types" },
       { action: "manage", resource: "workforce_assignments" },
       { action: "manage", resource: "workforce_payroll" },
+      { action: "manage", resource: "order_management_units" },
     ],
   },
   {
     name: "manager",
     description: "Quản lý — quản lý orders, dịch vụ, phân công nhân sự",
+    isSystem: true,
     permissions: [
       { action: "read", resource: "users" },
       { action: "update", resource: "users" },
@@ -105,11 +114,16 @@ const ROLES: SeedRole[] = [
       { action: "update", resource: "workforce_assignments" },
       { action: "delete", resource: "workforce_assignments" },
       { action: "read", resource: "workforce_payroll" },
+      { action: "create", resource: "order_management_units" },
+      { action: "read", resource: "order_management_units" },
+      { action: "update", resource: "order_management_units" },
+      { action: "delete", resource: "order_management_units" },
     ],
   },
   {
     name: "staff",
     description: "Nhân viên — xem orders, cập nhật workflow item được giao",
+    isSystem: true,
     permissions: [
       { action: "read", resource: "settings" },
       { action: "read", resource: "crm_customers" },
@@ -130,6 +144,7 @@ const ROLES: SeedRole[] = [
   {
     name: "user",
     description: "Người dùng thông thường — quyền tối thiểu",
+    isSystem: true,
     permissions: [
       { action: "read", resource: "settings" },
       { action: "read", resource: "crm_customers" },
@@ -138,14 +153,23 @@ const ROLES: SeedRole[] = [
   },
 ]
 
+// ─── Seed function ────────────────────────────────────────────────────────────
+
 export async function seedRoles() {
   console.log("Đang seed roles và permissions...")
 
   for (const roleData of ROLES) {
     const role = await db.role.upsert({
       where: { name: roleData.name },
-      update: { description: roleData.description },
-      create: { name: roleData.name, description: roleData.description },
+      update: {
+        description: roleData.description,
+        isSystem: roleData.isSystem,
+      },
+      create: {
+        name: roleData.name,
+        description: roleData.description,
+        isSystem: roleData.isSystem,
+      },
     })
 
     for (const perm of roleData.permissions) {
@@ -169,6 +193,8 @@ export async function seedRoles() {
       })
     }
 
-    console.log(`  ✓ Role "${roleData.name}" — ${roleData.permissions.length} quyền`)
+    console.log(
+      `  ✓ Role "${roleData.name}" [${roleData.isSystem ? "system" : "custom"}] — ${roleData.permissions.length} quyền`
+    )
   }
 }

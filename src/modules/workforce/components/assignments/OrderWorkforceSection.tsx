@@ -2,8 +2,6 @@
 
 import { Users, Plus } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { WorkerAssignmentCard } from "./WorkerAssignmentCard"
 import { WorkerAssignmentDialog } from "./WorkerAssignmentDialog"
 import type {
@@ -33,68 +31,79 @@ export function OrderWorkforceSection({
   orderStatus,
 }: Props) {
   const isCancelled = orderStatus === "CANCELLED"
-  const totalCost = services
-    .flatMap((s) => s.assignments)
-    .filter((a) => a.status !== "CANCELLED")
-    .reduce((sum, a) => sum + a.totalCost, 0)
-
+  const activeAssignments = services.flatMap((s) => s.assignments).filter((a) => a.status !== "CANCELLED")
+  const totalCost = activeAssignments.reduce((sum, a) => sum + a.totalCost, 0)
   const estimatedProfit = orderRevenue - totalCost
   const profitMargin = orderRevenue > 0 ? (estimatedProfit / orderRevenue) * 100 : 0
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n)
 
-  const hasAnyAssignment = services.some((s) => s.assignments.length > 0)
+  const hasAnyAssignment = activeAssignments.length > 0
 
   return (
     <Card>
       <CardHeader className="border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <CardTitle>Ekip phụ trách</CardTitle>
-          </div>
-          {hasAnyAssignment && (
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">
-                Chi phí:{" "}
-                <span className="font-semibold text-foreground">{fmt(totalCost)}</span>
-              </span>
-              <span className={estimatedProfit >= 0 ? "text-green-600" : "text-destructive"}>
-                Lợi nhuận ước tính:{" "}
-                <span className="font-semibold">
-                  {fmt(estimatedProfit)}{" "}
-                  <span className="text-xs">({profitMargin.toFixed(1)}%)</span>
-                </span>
-              </span>
-            </div>
-          )}
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <CardTitle>Ekip phụ trách</CardTitle>
         </div>
+
+        {hasAnyAssignment && (
+          <div className="mt-3 flex items-center gap-6 border-t border-border pt-3 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Chi phí ekip</p>
+              <p className="font-semibold tabular-nums">{fmt(totalCost)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Doanh thu</p>
+              <p className="font-semibold tabular-nums">{fmt(orderRevenue)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Lợi nhuận ước tính</p>
+              <p
+                className={`font-semibold tabular-nums ${
+                  estimatedProfit >= 0 ? "text-success-foreground" : "text-destructive"
+                }`}
+              >
+                {estimatedProfit >= 0 ? "+" : ""}
+                {fmt(estimatedProfit)}
+                <span className="ml-1 text-xs font-normal opacity-70">
+                  ({profitMargin.toFixed(1)}%)
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent className="pt-4 space-y-5">
+      <CardContent className="space-y-5 pt-4">
         {services.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-6">
+          <p className="py-6 text-center text-sm text-muted-foreground">
             Chưa có dịch vụ nào trong đơn hàng.
           </p>
         ) : (
-          services.map((service, idx) => {
+          services.map((service) => {
             const activeCost = service.assignments
               .filter((a) => a.status !== "CANCELLED")
               .reduce((sum, a) => sum + a.totalCost, 0)
+            const activeCount = service.assignments.filter((a) => a.status !== "CANCELLED").length
 
             return (
-              <div key={service.itemId}>
-                {idx > 0 && <Separator className="mb-5" />}
-
-                {/* Service header */}
-                <div className="flex items-center justify-between mb-3">
+              <div key={service.itemId} className="space-y-2">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{service.itemName}</span>
-                    {service.assignments.length > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        ({service.assignments.filter((a) => a.status !== "CANCELLED").length} nhân viên
-                        {activeCost > 0 && ` · ${fmt(activeCost)}`})
+                    <span className="text-sm font-semibold text-foreground">
+                      {service.itemName}
+                    </span>
+                    {activeCount > 0 && (
+                      <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                        {activeCount} người
+                      </span>
+                    )}
+                    {activeCost > 0 && (
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        · {fmt(activeCost)}
                       </span>
                     )}
                   </div>
@@ -104,21 +113,25 @@ export function OrderWorkforceSection({
                       orderItemName={service.itemName}
                       workers={activeWorkers}
                     >
-                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                      <button
+                        type="button"
+                        className="flex h-7 flex-shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                      >
                         <Plus className="h-3 w-3" />
                         Phân công
-                      </Button>
+                      </button>
                     </WorkerAssignmentDialog>
                   )}
                 </div>
 
-                {/* Assignment cards */}
                 {service.assignments.length === 0 ? (
-                  <p className="text-muted-foreground text-xs py-3 px-1">
-                    Chưa có nhân viên nào được phân công cho dịch vụ này.
-                  </p>
+                  <div className="rounded-lg border border-dashed border-border px-3 py-3">
+                    <p className="text-xs text-muted-foreground">
+                      Chưa có nhân viên nào được phân công.
+                    </p>
+                  </div>
                 ) : (
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-1.5">
                     {service.assignments.map((a) => (
                       <WorkerAssignmentCard key={a.id} assignment={a} orderCancelled={isCancelled} />
                     ))}
@@ -127,31 +140,6 @@ export function OrderWorkforceSection({
               </div>
             )
           })
-        )}
-
-        {/* Footer tổng */}
-        {hasAnyAssignment && (
-          <>
-            <Separator />
-            <div className="flex items-center justify-between text-sm pt-1">
-              <span className="text-muted-foreground">Tổng chi phí ekip</span>
-              <div className="flex items-center gap-6">
-                <span className="tabular-nums font-semibold">{fmt(totalCost)}</span>
-                <span className="text-muted-foreground">
-                  Doanh thu:{" "}
-                  <span className="tabular-nums text-foreground">{fmt(orderRevenue)}</span>
-                </span>
-                <span
-                  className={`tabular-nums font-semibold ${
-                    estimatedProfit >= 0 ? "text-green-600" : "text-destructive"
-                  }`}
-                >
-                  {estimatedProfit >= 0 ? "+" : ""}
-                  {fmt(estimatedProfit)}
-                </span>
-              </div>
-            </div>
-          </>
         )}
       </CardContent>
     </Card>

@@ -16,7 +16,12 @@ model User {
   name             String?
   image            String?
   roleId           String
-  role             Role                   @relation(fields: [roleId], references: [id])
+  role             Role                   @relation("UserPrimaryRole", fields: [roleId], references: [id])
+  // ── RBAC: multi-role ──
+  userRoles        UserRole[]             @relation("UserRoleUser")
+  assignedUserRoles UserRole[]            @relation("UserRoleAssigner")
+  createdRoles     Role[]                 @relation("RoleCreator")
+  updatedRoles     Role[]                 @relation("RoleUpdater")
   accounts         Account[]
   sessions         Session[]
   auditLogs        AuditLog[]
@@ -36,9 +41,11 @@ model User {
   createdWorkers           Worker[]               @relation("WorkerCreator")
   createdJobTypes          JobType[]              @relation("JobTypeCreator")
   workerAssignments        OrderItemWorker[]      @relation("WorkerAssigner")
+  createdOrderManagementUnits OrderManagementUnit[] @relation("OrderManagementUnitCreator")
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
 
+  @@index([roleId])
   @@map("users")
 }
 
@@ -86,22 +93,55 @@ model Role {
   id          String           @id @default(cuid())
   name        String           @unique
   description String?
-  users       User[]
+  // isSystem = true: built-in role, cannot be deleted or renamed
+  isSystem    Boolean          @default(false)
+  users       User[]           @relation("UserPrimaryRole")
+  userRoles   UserRole[]
   permissions RolePermission[]
+  createdById String?
+  updatedById String?
+  createdBy   User?            @relation("RoleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   User?            @relation("RoleUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  deletedAt   DateTime?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
+  @@index([isSystem])
+  @@index([deletedAt])
   @@map("roles")
+}
+
+// Junction table: User ↔ Role (multi-role per user)
+// Primary role still lives on User.roleId for session compatibility
+model UserRole {
+  id           String   @id @default(cuid())
+  userId       String
+  roleId       String
+  user         User     @relation("UserRoleUser", fields: [userId], references: [id], onDelete: Cascade)
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedById String
+  assignedBy   User     @relation("UserRoleAssigner", fields: [assignedById], references: [id])
+  assignedAt   DateTime @default(now())
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([assignedById])
+  @@map("user_roles")
 }
 
 model Permission {
   id          String           @id @default(cuid())
   action      String           // create | read | update | delete | manage
-  resource    String           // users | roles | permissions | settings | audit_logs
+  resource    String           // users | roles | permissions | settings | audit_logs | ...
   description String?
   roles       RolePermission[]
+  deletedAt   DateTime?
 
   @@unique([action, resource])
+  @@index([resource])
+  @@index([action])
+  @@index([deletedAt])
   @@map("permissions")
 }
 
@@ -110,8 +150,12 @@ model RolePermission {
   permissionId String
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  assignedById String?
+  assignedAt   DateTime   @default(now())
 
   @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
   @@map("role_permissions")
 }
 
@@ -139,6 +183,7 @@ model Customer {
   @@index([status])
   @@index([name])
   @@index([createdAt])
+  @@index([createdById])
   @@map("customers")
 }
 
@@ -181,9 +226,12 @@ model Lead {
   updatedAt         DateTime     @updatedAt
 
   @@index([status])
+  @@index([priority])
   @@index([customerId])
   @@index([assignedToId])
+  @@index([createdById])
   @@index([createdAt])
+  @@index([closedAt])
   @@map("leads")
 }
 
@@ -319,7 +367,7 @@ model Order {
   contactName   String
   contactPhone  String?
   contactEmail  String?
-  status        OrderStatus    @default(DRAFT)
+  status        OrderStatus    @default(NEW)
   notes         String?        @db.Text
   internalNotes String?        @db.Text
   subtotal      Decimal        @default(0) @db.Decimal(15, 2)
@@ -327,26 +375,12 @@ model Order {
   totalAmount   Decimal        @default(0) @db.Decimal(15, 2)
   paidAmount    Decimal        @default(0) @db.Decimal(15, 2)
   currency      String         @default("VND")
-  // ── Thông tin tiệc ──
-  partyName   String?
-  // ── Lịch trình sản xuất ──
-  shootingDate        DateTime?
-  rawPhotoSentDate    DateTime?
-  selectionDate       DateTime?
-  editedPhotoSentDate DateTime?
-  deliveryDate        DateTime?
-  // ── Phân loại ──
-  category    String?
-  channel     String?
-
-  source      CustomerSource?
+  partyName     String?
+  source        CustomerSource?
   items         OrderItem[]
   payments      OrderPayment[]
   createdById   String
   createdBy     User           @relation("OrderCreator", fields: [createdById], references: [id])
-  confirmedAt   DateTime?
-  completedAt   DateTime?
-  cancelledAt   DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -355,46 +389,71 @@ model Order {
   @@index([orderNumber])
   @@index([createdById])
   @@index([createdAt])
-  @@index([shootingDate])
   @@map("orders")
 }
 
+model OrderManagementUnit {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdById String
+  createdBy   User     @relation("OrderManagementUnitCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("order_management_units")
+}
+
 enum OrderStatus {
-  DRAFT
-  CONFIRMED
-  IN_PROGRESS
+  NEW
+  WAITING_FILES
+  PARTIAL_DELIVERY
+  OVERDUE
+  FILES_DELIVERED
   COMPLETED
-  CANCELLED
+}
+
+enum OrderItemDeliveryStatus {
+  PENDING
+  DELIVERED
 }
 
 model OrderItem {
-  id                  String                 @id @default(cuid())
+  id                  String                      @id @default(cuid())
   orderId             String
-  order               Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order               Order                       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   serviceDefinitionId String
-  serviceDefinition   ServiceDefinition      @relation(fields: [serviceDefinitionId], references: [id])
+  serviceDefinition   ServiceDefinition           @relation(fields: [serviceDefinitionId], references: [id])
   name                String
-  description         String?                @db.Text
-  price               Decimal                @db.Decimal(15, 2)
-  quantity            Int                    @default(1)
-  totalPrice          Decimal                @db.Decimal(15, 2)
+  description         String?                     @db.Text
+  price               Decimal                     @db.Decimal(15, 2)
+  quantity            Int                         @default(1)
+  totalPrice          Decimal                     @db.Decimal(15, 2)
   eventDate           DateTime?
   deadline            DateTime?
+  deliveryStatus      OrderItemDeliveryStatus     @default(PENDING)
+  fileDeliveredAt     DateTime?
   currentStepId       String?
-  currentStep         WorkflowStep?          @relation("CurrentStep", fields: [currentStepId], references: [id], onDelete: SetNull)
+  currentStep         WorkflowStep?               @relation("CurrentStep", fields: [currentStepId], references: [id], onDelete: SetNull)
   assignedToId        String?
-  assignedTo          User?                  @relation("OrderItemAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
-  notes               String?                @db.Text
+  assignedTo          User?                       @relation("OrderItemAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  notes               String?                     @db.Text
+  location            String?                     @db.Text
   workflowLogs        OrderItemWorkflowLog[]
   workerAssignments   OrderItemWorker[]
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([orderId])
   @@index([serviceDefinitionId])
   @@index([currentStepId])
   @@index([assignedToId])
   @@index([deadline])
+  @@index([deliveryStatus])
   @@map("order_items")
 }
 

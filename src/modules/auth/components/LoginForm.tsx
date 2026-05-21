@@ -16,11 +16,11 @@ export function LoginForm() {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(loginAction, initialState)
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   useEffect(() => {
     if (state.success) {
       router.push("/dashboard")
-      router.refresh()
     }
   }, [state.success, router])
 
@@ -72,6 +72,8 @@ export function LoginForm() {
           name="password"
           type="password"
           autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           aria-describedby={fieldErrors?.password ? "password-error" : undefined}
           aria-invalid={!!fieldErrors?.password}
           className={fieldErrors?.password ? "border-red-400" : ""}

@@ -2,6 +2,7 @@ import { db } from "@/shared/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { orderItemRepository } from "../repository/order-item.repository"
 import { orderRepository } from "../repository/order.repository"
+import { orderService } from "./order.service"
 import type { AddOrderItemDto, OrderItemSummary, UpdateOrderItemDto } from "../types/orders.types"
 
 export const orderItemService = {
@@ -44,6 +45,7 @@ export const orderItemService = {
     }
 
     await orderRepository.recalculateTotals(data.orderId)
+    await orderService.computeAndUpdateOrderStatus(data.orderId)
     return item
   },
 
@@ -56,18 +58,30 @@ export const orderItemService = {
       select: { orderId: true },
     })
     await orderRepository.recalculateTotals(fullItem.orderId)
+    await orderService.computeAndUpdateOrderStatus(fullItem.orderId)
     return updated
   },
 
   async remove(id: string): Promise<void> {
     const { orderId } = await orderItemRepository.delete(id)
     await orderRepository.recalculateTotals(orderId)
+    await orderService.computeAndUpdateOrderStatus(orderId)
   },
 
   async assignStaff(id: string, assignedToId: string | null): Promise<void> {
     const item = await orderItemRepository.findById(id)
     if (!item) throw new Error("ORDER_ITEM_NOT_FOUND")
     await orderItemRepository.assignStaff(id, assignedToId)
+  },
+
+  async updateDeliveryStatus(
+    id: string,
+    deliveryStatus: "PENDING" | "DELIVERED",
+  ): Promise<void> {
+    const item = await orderItemRepository.findById(id)
+    if (!item) throw new Error("ORDER_ITEM_NOT_FOUND")
+    const { orderId } = await orderItemRepository.updateDeliveryStatus(id, deliveryStatus)
+    await orderService.computeAndUpdateOrderStatus(orderId)
   },
 
   async recordPayment(data: {
@@ -93,5 +107,6 @@ export const orderItemService = {
       },
     })
     await orderRepository.recalculateTotals(data.orderId)
+    await orderService.computeAndUpdateOrderStatus(data.orderId)
   },
 }

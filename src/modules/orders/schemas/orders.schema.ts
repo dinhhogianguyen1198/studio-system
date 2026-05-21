@@ -1,21 +1,11 @@
 import { z } from "zod"
 
-// Converts empty string to undefined before validation — reliable Zod v4 approach
-// for optional form fields that submit "" when left blank.
 const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v)
 
-const optionalDate = z
-  .union([z.coerce.date(), z.literal("")])
-  .optional()
-  .transform((v) => (v === "" ? undefined : v))
-
-// For update forms: empty string → null (explicitly clear the date field)
 const nullableDate = z
   .union([z.coerce.date(), z.literal("")])
   .optional()
   .transform((v) => (v === "" ? null : v))
-
-const orderStatusEnum = z.enum(["DRAFT", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
 
 export const createOrderSchema = z.object({
   customerId: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
@@ -25,19 +15,7 @@ export const createOrderSchema = z.object({
   notes: z.string().max(2000).optional(),
   internalNotes: z.string().max(2000).optional(),
   discountAmount: z.coerce.number().min(0).optional(),
-  status: orderStatusEnum.optional(),
-  // Thông tin tiệc
   partyName: z.preprocess(emptyToUndefined, z.string().max(200).optional()),
-  // Schedule
-  shootingDate: optionalDate,
-  rawPhotoSentDate: optionalDate,
-  selectionDate: optionalDate,
-  editedPhotoSentDate: optionalDate,
-  deliveryDate: optionalDate,
-  // Classification
-  category: z.string().max(100).optional(),
-  channel: z.string().max(100).optional(),
-
   source: z.string().max(50).optional(),
 })
 
@@ -50,6 +28,7 @@ export const addOrderItemSchema = z.object({
   quantity: z.coerce.number().int().min(1, "Số lượng tối thiểu là 1"),
   deadline: z.coerce.date().optional(),
   notes: z.string().max(1000).optional(),
+  location: z.string().max(500).optional(),
 })
 
 export const updateOrderItemSchema = z.object({
@@ -58,6 +37,7 @@ export const updateOrderItemSchema = z.object({
   eventDate: nullableDate,
   deadline: nullableDate,
   notes: z.string().max(1000).optional(),
+  location: z.string().max(500).optional(),
   assignedToId: z.string().cuid().optional().or(z.literal("")),
 })
 
@@ -78,6 +58,7 @@ export const orderItemInputSchema = z.object({
   eventDate: z.coerce.date().optional(),
   deadline: z.coerce.date().optional(),
   notes: z.string().max(1000).optional(),
+  location: z.string().max(500).optional(),
 })
 
 export const createOrderWithItemsSchema = createOrderSchema.extend({
@@ -92,4 +73,3 @@ export type UpdateOrderItemInput = z.infer<typeof updateOrderItemSchema>
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>
 export type OrderItemInput = z.infer<typeof orderItemInputSchema>
 export type CreateOrderWithItemsInput = z.infer<typeof createOrderWithItemsSchema>
-

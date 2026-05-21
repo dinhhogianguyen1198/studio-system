@@ -16,7 +16,8 @@ declare module "@auth/core/jwt" {
   interface JWT {
     id: string
     roleId: string
-    role: RoleWithPermissions
+    roleName: string
+    permissions: string[]
   }
 }
 

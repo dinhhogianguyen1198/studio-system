@@ -66,6 +66,29 @@ export async function updateOrderItemAction(
   }
 }
 
+export async function updateOrderItemDeliveryStatusAction(
+  itemId: string,
+  orderId: string,
+  deliveryStatus: "PENDING" | "DELIVERED",
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("order_items", "update")
+  try {
+    await orderItemService.updateDeliveryStatus(itemId, deliveryStatus)
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "order_items",
+      resourceId: itemId,
+      metadata: { orderId, deliveryStatus },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    const code = err instanceof Error ? err.message : "UNKNOWN"
+    return { success: false, error: ERROR_MESSAGES[code] ?? toActionError(err, "Cập nhật trạng thái giao file thất bại") }
+  }
+}
+
 export async function removeOrderItemAction(itemId: string, orderId: string): Promise<ActionResult<void>> {
   const session = await requirePermission("order_items", "delete")
   try {

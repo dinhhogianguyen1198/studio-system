@@ -24,7 +24,10 @@ export const orderItemSummarySelect = {
   totalPrice: true,
   eventDate: true,
   deadline: true,
+  deliveryStatus: true,
+  fileDeliveredAt: true,
   notes: true,
+  location: true,
   serviceDefinition: { select: { id: true, name: true, defaultDurationDays: true } },
   currentStep: { select: { id: true, key: true, name: true, color: true, isFinal: true } },
   assignedTo: { select: { id: true, name: true } },
@@ -44,21 +47,8 @@ export const orderDetailSelect = {
   totalAmount: true,
   paidAmount: true,
   currency: true,
-  // Schedule
-  shootingDate: true,
-  rawPhotoSentDate: true,
-  selectionDate: true,
-  editedPhotoSentDate: true,
-  deliveryDate: true,
-  // Classification
-  category: true,
-  channel: true,
-
   partyName: true,
   source: true,
-  confirmedAt: true,
-  completedAt: true,
-  cancelledAt: true,
   createdAt: true,
   updatedAt: true,
   customer: { select: { id: true, name: true, phone: true, email: true } },
@@ -91,19 +81,37 @@ export type OrderItemSummary = Prisma.OrderItemGetPayload<{ select: typeof order
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Nháp",
-  CONFIRMED: "Đã xác nhận",
-  IN_PROGRESS: "Đang thực hiện",
+  NEW: "Mới tạo",
+  WAITING_FILES: "Chờ giao file",
+  PARTIAL_DELIVERY: "Giao file một phần",
+  OVERDUE: "Trễ hạn giao file",
+  FILES_DELIVERED: "Đã giao file",
   COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
 }
 
-export const ORDER_STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "secondary",
-  CONFIRMED: "default",
-  IN_PROGRESS: "default",
-  COMPLETED: "outline",
-  CANCELLED: "destructive",
+export const ORDER_STATUS_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline" | "info" | "warning" | "success"
+> = {
+  NEW: "secondary",
+  WAITING_FILES: "warning",
+  PARTIAL_DELIVERY: "info",
+  OVERDUE: "destructive",
+  FILES_DELIVERED: "info",
+  COMPLETED: "success",
+}
+
+export const ORDER_ITEM_DELIVERY_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Chưa giao file",
+  DELIVERED: "Đã giao file",
+}
+
+export const ORDER_ITEM_DELIVERY_STATUS_VARIANTS: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline" | "info" | "warning" | "success"
+> = {
+  PENDING: "secondary",
+  DELIVERED: "success",
 }
 
 export const PAYMENT_TYPE_LABELS: Record<string, string> = {
@@ -130,6 +138,7 @@ export type SerializedOrderSummary = Omit<OrderSummary, "totalAmount" | "paidAmo
 export type SerializedOrderItemSummary = Omit<OrderItemSummary, "price" | "totalPrice"> & {
   price: number
   totalPrice: number
+  location: string | null
 }
 
 export function serializeOrderSummary(order: OrderSummary): SerializedOrderSummary {
@@ -150,25 +159,11 @@ export interface CreateOrderDto {
   notes?: string
   internalNotes?: string
   discountAmount?: number
-  status?: "DRAFT" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
-  // Thông tin tiệc
   partyName?: string
-  // Schedule
-  shootingDate?: Date
-  rawPhotoSentDate?: Date
-  selectionDate?: Date
-  editedPhotoSentDate?: Date
-  deliveryDate?: Date
-  // Classification
-  category?: string
-  channel?: string
-
   source?: string
 }
 
-export interface UpdateOrderDto extends Partial<CreateOrderDto> {
-  status?: "DRAFT" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
-}
+export interface UpdateOrderDto extends Partial<CreateOrderDto> {}
 
 export interface AddOrderItemDto {
   orderId: string
@@ -178,6 +173,7 @@ export interface AddOrderItemDto {
   eventDate?: Date
   deadline?: Date
   notes?: string
+  location?: string
 }
 
 export interface UpdateOrderItemDto {
@@ -186,7 +182,12 @@ export interface UpdateOrderItemDto {
   eventDate?: Date | null
   deadline?: Date | null
   notes?: string
+  location?: string
   assignedToId?: string
+}
+
+export interface UpdateOrderItemDeliveryStatusDto {
+  deliveryStatus: "PENDING" | "DELIVERED"
 }
 
 export interface RecordPaymentDto {

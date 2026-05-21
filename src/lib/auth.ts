@@ -54,7 +54,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id as string
         const u = user as typeof user & { roleId: string; role: RoleWithPermissions }
         token.roleId = u.roleId
-        token.role = u.role
+        token.roleName = u.role.name
+        // Lưu dạng compact "resource:action" để tránh cookie quá lớn (HTTP 431)
+        token.permissions = u.role.permissions.map(
+          (rp) => `${rp.permission.resource}:${rp.permission.action}`
+        )
       }
       return token
     },
@@ -63,7 +67,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token) {
         session.user.id = token.id
         session.user.roleId = token.roleId
-        session.user.role = token.role
+        // Reconstruct RoleWithPermissions từ compact strings
+        session.user.role = {
+          id: token.roleId,
+          name: token.roleName,
+          permissions: token.permissions.map((p) => {
+            const idx = p.indexOf(":")
+            return {
+              permission: {
+                resource: p.slice(0, idx),
+                action: p.slice(idx + 1),
+              },
+            }
+          }),
+        }
       }
       return session
     },
