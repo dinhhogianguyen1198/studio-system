@@ -62,7 +62,7 @@ export const orderRepository = {
   },
 
   async update(id: string, data: UpdateOrderDto): Promise<OrderDetail> {
-    const { customerId, discountAmount, status, source, ...rest } = data
+    const { customerId, discountAmount, source, ...rest } = data
     return db.order.update({
       where: { id },
       data: {
@@ -73,7 +73,6 @@ export const orderRepository = {
         ...(discountAmount !== undefined && {
           discountAmount: new Prisma.Decimal(discountAmount),
         }),
-        ...(status && { status: status as never }),
         ...(source !== undefined && { source: (source as never) || null }),
       },
       select: orderDetailSelect,
