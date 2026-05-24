@@ -33,7 +33,10 @@ export const authConfig: NextAuthConfig = {
         return true
       }
 
-      return isLoggedIn
+      if (!isLoggedIn) {
+        return Response.redirect(new URL("/login", nextUrl))
+      }
+      return true
     },
   },
   providers: [],
