@@ -1,7 +1,7 @@
 "use client"
 
 import { Trash2, PackageX, Check, X, Plus, GripVertical, ShoppingBag } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, generateUUID } from "@/lib/utils"
 import type { SerializedServiceDefinitionSummary } from "@/modules/services/types/services.types"
 
 export interface OrderItemDraft {
@@ -255,7 +255,7 @@ export function OrderItemsEditor({ services, items, onChange, isPickerOpen, onPi
     onChange([
       ...items,
       {
-        _key: crypto.randomUUID(),
+        _key: generateUUID(),
         serviceDefinitionId: svc.id,
         serviceName: svc.name,
         defaultDurationDays: svc.defaultDurationDays ?? null,
@@ -288,7 +288,7 @@ export function OrderItemsEditor({ services, items, onChange, isPickerOpen, onPi
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">Chưa có dịch vụ nào</p>
-            <p className="mt-1 text-xs text-muted-foreground">Bấm "Thêm dịch vụ" để chọn dịch vụ cho đơn hàng</p>
+            <p className="mt-1 text-xs text-muted-foreground">Bấm &quot;Thêm dịch vụ&quot; để chọn dịch vụ cho đơn hàng</p>
           </div>
         </div>
       )}
