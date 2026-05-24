@@ -36,7 +36,6 @@ import {
   type CustomerDetailData,
   type CustomerOrderItem,
 } from "../../actions/customer.actions"
-import { CUSTOMER_STATUS_LABELS } from "../../types/crm.types"
 import { ORDER_STATUS_LABELS } from "@/modules/orders/types/orders.types"
 
 // ─── Info tab ─────────────────────────────────────────────────────────────────
@@ -259,13 +258,6 @@ export function CustomerDetailDialog({ customerId, currentUserId, onClose }: Pro
     }
   }
 
-  const statusVariant =
-    customer?.status === "ACTIVE"
-      ? "success"
-      : customer?.status === "INACTIVE"
-        ? "muted"
-        : "destructive"
-
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
@@ -275,18 +267,13 @@ export function CustomerDetailDialog({ customerId, currentUserId, onClose }: Pro
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isLoadingCustomer ? (
-                    <div className="h-6 w-48 animate-pulse rounded bg-muted" />
-                  ) : (
-                    <DialogTitle className="text-lg font-semibold">
-                      {customer?.name ?? ""}
-                    </DialogTitle>
-                  )}
-                  {customer && (
-                    <Badge variant={statusVariant}>
-                      {CUSTOMER_STATUS_LABELS[customer.status]}
-                    </Badge>
-                  )}
+                  <DialogTitle className="text-lg font-semibold">
+                    {isLoadingCustomer ? (
+                      <span className="inline-block h-6 w-48 animate-pulse rounded bg-muted align-middle" />
+                    ) : (
+                      customer?.name ?? ""
+                    )}
+                  </DialogTitle>
                 </div>
                 {customer && (
                   <p className="mt-0.5 text-sm text-muted-foreground">

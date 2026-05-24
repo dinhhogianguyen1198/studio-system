@@ -19,7 +19,6 @@ export const createServiceDefinitionSchema = z.object({
     .optional()
     .transform((v) => v !== "false"),
   sortOrder: z.coerce.number().int().min(0).optional(),
-  workflowTemplateId: z.string().cuid().optional().or(z.literal("")),
 })
 
 export const updateServiceDefinitionSchema = createServiceDefinitionSchema.partial()

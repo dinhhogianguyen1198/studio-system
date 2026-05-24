@@ -12,14 +12,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { createServiceDefinitionAction } from "@/modules/services/actions/service-definition.actions"
-import type { WorkflowTemplateSummary } from "@/modules/workflow/types/workflow.types"
 import { ServiceDefinitionForm } from "./ServiceDefinitionForm"
 
-interface Props {
-  workflowTemplates: WorkflowTemplateSummary[]
-}
-
-export function CreateServiceDefinitionDialog({ workflowTemplates }: Props) {
+export function CreateServiceDefinitionDialog() {
   const [open, setOpen] = useState(false)
 
   return (
@@ -37,7 +32,6 @@ export function CreateServiceDefinitionDialog({ workflowTemplates }: Props) {
         </DialogHeader>
         <ServiceDefinitionForm
           action={createServiceDefinitionAction}
-          workflowTemplates={workflowTemplates}
           onSuccess={() => setOpen(false)}
         />
       </DialogContent>

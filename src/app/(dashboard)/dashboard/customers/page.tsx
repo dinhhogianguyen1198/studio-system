@@ -1,13 +1,11 @@
 import { Suspense } from "react"
-import Link from "next/link"
 import { requireSession } from "@/shared/lib/auth-utils"
 import { customerService } from "@/modules/crm/service/customer.service"
 import { customerFilterSchema } from "@/modules/crm/schemas/crm.schema"
 import { CustomerTable } from "@/modules/crm/components/customers/CustomerTable"
 import { CustomerFilters } from "@/modules/crm/components/customers/CustomerFilters"
+import { CreateCustomerButton } from "@/modules/crm/components/customers/CreateCustomerDialog"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[]>>
@@ -22,8 +20,6 @@ async function CustomerList({
 }) {
   const raw = {
     search: typeof searchParams.search === "string" ? searchParams.search : undefined,
-    status: typeof searchParams.status === "string" ? searchParams.status : undefined,
-    source: typeof searchParams.source === "string" ? searchParams.source : undefined,
     page: typeof searchParams.page === "string" ? searchParams.page : undefined,
     pageSize: typeof searchParams.pageSize === "string" ? searchParams.pageSize : undefined,
   }
@@ -51,12 +47,7 @@ export default async function CustomersPage({ searchParams }: PageProps) {
           <h1 className="text-2xl font-bold">Khách hàng</h1>
           <p className="text-sm text-muted-foreground">Danh sách toàn bộ khách hàng</p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/customers/new">
-            <Plus className="size-4" />
-            Thêm khách hàng
-          </Link>
-        </Button>
+        <CreateCustomerButton />
       </div>
 
       <Card>

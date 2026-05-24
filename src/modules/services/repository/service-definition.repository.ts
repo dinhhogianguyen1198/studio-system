@@ -66,12 +66,11 @@ export const serviceDefinitionRepository = {
     data: CreateServiceDefinitionDto,
     createdById: string,
   ): Promise<ServiceDefinitionDetail> {
-    const { defaultPrice, workflowTemplateId, ...rest } = data
+    const { defaultPrice, ...rest } = data
     return db.serviceDefinition.create({
       data: {
         ...rest,
         defaultPrice: new (await import("@prisma/client")).Prisma.Decimal(defaultPrice),
-        ...(workflowTemplateId && { workflowTemplateId }),
         createdById,
       },
       select: serviceDefinitionDetailSelect,
@@ -79,16 +78,13 @@ export const serviceDefinitionRepository = {
   },
 
   async update(id: string, data: UpdateServiceDefinitionDto): Promise<ServiceDefinitionDetail> {
-    const { defaultPrice, workflowTemplateId, ...rest } = data
+    const { defaultPrice, ...rest } = data
     return db.serviceDefinition.update({
       where: { id },
       data: {
         ...rest,
         ...(defaultPrice !== undefined && {
           defaultPrice: new (await import("@prisma/client")).Prisma.Decimal(defaultPrice),
-        }),
-        ...(workflowTemplateId !== undefined && {
-          workflowTemplateId: workflowTemplateId || null,
         }),
       },
       select: serviceDefinitionDetailSelect,

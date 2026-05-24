@@ -22,15 +22,13 @@ import {
 import {
   RateType,
   RATE_TYPE_LABELS,
-  type WorkerDetail,
+  type SerializedWorkerRate,
   type JobTypeSummary,
 } from "@/modules/workforce/types/workforce.types"
 
-type ActiveRate = WorkerDetail["rates"][number]
-
 interface Props {
   workerId: string
-  rates: ActiveRate[]
+  rates: SerializedWorkerRate[]
   jobTypes: JobTypeSummary[]
 }
 

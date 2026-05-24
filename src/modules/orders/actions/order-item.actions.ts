@@ -5,8 +5,10 @@ import { requirePermission } from "@/shared/lib/auth-utils"
 import { writeAuditLog } from "@/shared/lib/audit"
 import { toActionError } from "@/shared/lib/action-error"
 import type { ActionResult } from "@/shared/types/api.types"
+import { db } from "@/shared/lib/prisma"
 import { orderItemService } from "../service/order-item.service"
-import { addOrderItemSchema, updateOrderItemSchema, recordPaymentSchema } from "../schemas/orders.schema"
+import { addOrderItemSchema, updateOrderItemSchema, recordPaymentSchema, updatePaymentSchema, createOrderFeedbackSchema, createIncidentalCostSchema, updateIncidentalCostSchema } from "../schemas/orders.schema"
+import { orderRepository } from "../repository/order.repository"
 
 const ERROR_MESSAGES: Record<string, string> = {
   ORDER_ITEM_NOT_FOUND: "Dịch vụ không tồn tại trong đơn hàng",
@@ -126,6 +128,203 @@ export async function assignOrderItemStaffAction(
     return { success: true, data: undefined }
   } catch (err) {
     return { success: false, error: toActionError(err, "Phân công thất bại") }
+  }
+}
+
+export async function updatePaymentAction(
+  paymentId: string,
+  orderId: string,
+  _prevState: ActionResult<void>,
+  formData: FormData,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("order_payments", "update")
+  const parsed = updatePaymentSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
+
+  try {
+    await db.orderPayment.update({
+      where: { id: paymentId },
+      data: {
+        type: parsed.data.type as never,
+        amount: parsed.data.amount,
+        method: parsed.data.method as never,
+        reference: parsed.data.reference,
+        note: parsed.data.note,
+        paidAt: parsed.data.paidAt,
+      },
+    })
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "order_payments",
+      resourceId: paymentId,
+      metadata: { orderId, type: parsed.data.type, amount: parsed.data.amount },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Cập nhật thanh toán thất bại") }
+  }
+}
+
+export async function deletePaymentAction(
+  paymentId: string,
+  orderId: string,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("order_payments", "delete")
+  try {
+    await db.orderPayment.delete({ where: { id: paymentId } })
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "DELETE",
+      resource: "order_payments",
+      resourceId: paymentId,
+      metadata: { orderId },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Xóa thanh toán thất bại") }
+  }
+}
+
+export async function createOrderFeedbackAction(
+  _prevState: ActionResult<void>,
+  formData: FormData,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("orders", "update")
+  const parsed = createOrderFeedbackSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
+
+  try {
+    await db.orderFeedback.create({
+      data: {
+        orderId: parsed.data.orderId,
+        content: parsed.data.content,
+        createdById: session.user.id,
+      },
+    })
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "CREATE",
+      resource: "order_feedbacks",
+      resourceId: parsed.data.orderId,
+      metadata: { orderId: parsed.data.orderId },
+    })
+    revalidatePath(`/dashboard/orders/${parsed.data.orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Ghi nhận phản hồi thất bại") }
+  }
+}
+
+export async function deleteOrderFeedbackAction(
+  feedbackId: string,
+  orderId: string,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("orders", "update")
+  try {
+    await db.orderFeedback.delete({ where: { id: feedbackId } })
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "DELETE",
+      resource: "order_feedbacks",
+      resourceId: feedbackId,
+      metadata: { orderId },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Xóa phản hồi thất bại") }
+  }
+}
+
+export async function createIncidentalCostAction(
+  _prevState: ActionResult<void>,
+  formData: FormData,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("orders", "update")
+  const parsed = createIncidentalCostSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
+
+  try {
+    await db.orderIncidentalCost.create({
+      data: {
+        orderId: parsed.data.orderId,
+        reason: parsed.data.reason,
+        amount: parsed.data.amount,
+        notes: parsed.data.notes,
+        createdById: session.user.id,
+      },
+    })
+    await orderRepository.recalculateTotals(parsed.data.orderId)
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "CREATE",
+      resource: "order_incidental_costs",
+      resourceId: parsed.data.orderId,
+      metadata: { orderId: parsed.data.orderId, reason: parsed.data.reason, amount: parsed.data.amount },
+    })
+    revalidatePath(`/dashboard/orders/${parsed.data.orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Thêm chi phí thất bại") }
+  }
+}
+
+export async function updateIncidentalCostAction(
+  costId: string,
+  orderId: string,
+  _prevState: ActionResult<void>,
+  formData: FormData,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("orders", "update")
+  const parsed = updateIncidentalCostSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
+
+  try {
+    await db.orderIncidentalCost.update({
+      where: { id: costId },
+      data: {
+        reason: parsed.data.reason,
+        amount: parsed.data.amount,
+        notes: parsed.data.notes ?? null,
+      },
+    })
+    await orderRepository.recalculateTotals(orderId)
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "order_incidental_costs",
+      resourceId: costId,
+      metadata: { orderId, reason: parsed.data.reason, amount: parsed.data.amount },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Cập nhật chi phí thất bại") }
+  }
+}
+
+export async function deleteIncidentalCostAction(
+  costId: string,
+  orderId: string,
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("orders", "update")
+  try {
+    await db.orderIncidentalCost.delete({ where: { id: costId } })
+    await orderRepository.recalculateTotals(orderId)
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "DELETE",
+      resource: "order_incidental_costs",
+      resourceId: costId,
+      metadata: { orderId },
+    })
+    revalidatePath(`/dashboard/orders/${orderId}`)
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toActionError(err, "Xóa chi phí thất bại") }
   }
 }
 

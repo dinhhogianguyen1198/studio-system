@@ -10,16 +10,14 @@ import {
 } from "@/components/ui/dialog"
 import { updateServiceDefinitionAction } from "@/modules/services/actions/service-definition.actions"
 import type { SerializedServiceDefinitionSummary } from "../../types/services.types"
-import type { WorkflowTemplateSummary } from "@/modules/workflow/types/workflow.types"
 import { ServiceDefinitionForm } from "./ServiceDefinitionForm"
 
 interface Props {
   service: SerializedServiceDefinitionSummary | null
-  workflowTemplates: WorkflowTemplateSummary[]
   onClose: () => void
 }
 
-export function EditServiceDefinitionDialog({ service, workflowTemplates, onClose }: Props) {
+export function EditServiceDefinitionDialog({ service, onClose }: Props) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -46,7 +44,6 @@ export function EditServiceDefinitionDialog({ service, workflowTemplates, onClos
           key={service.id}
           action={boundAction}
           defaultValues={service}
-          workflowTemplates={workflowTemplates}
           submitLabel="Lưu thay đổi"
           onSuccess={onClose}
         />

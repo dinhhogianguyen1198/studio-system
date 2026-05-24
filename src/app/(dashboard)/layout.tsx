@@ -15,7 +15,7 @@ export default async function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop sidebar — hidden on mobile, handled by MobileSidebar inside Navbar */}
       <div className="hidden lg:flex">
-        <Sidebar role={session.user.role} appName="Studio" />
+        <Sidebar role={session.user.role} appName="Lu Production" />
       </div>
 
       {/* Content column */}

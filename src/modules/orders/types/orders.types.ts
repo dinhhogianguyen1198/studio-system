@@ -8,11 +8,13 @@ export const orderSummarySelect = {
   status: true,
   contactName: true,
   contactPhone: true,
+  partyName: true,
   totalAmount: true,
   paidAmount: true,
   currency: true,
   createdAt: true,
   customer: { select: { id: true, name: true } },
+  orderManagementUnit: { select: { id: true, name: true } },
   _count: { select: { items: true } },
 } satisfies Prisma.OrderSelect
 
@@ -33,6 +35,22 @@ export const orderItemSummarySelect = {
   assignedTo: { select: { id: true, name: true } },
 } satisfies Prisma.OrderItemSelect
 
+export const orderFeedbackSummarySelect = {
+  id: true,
+  content: true,
+  createdAt: true,
+  createdBy: { select: { id: true, name: true } },
+} satisfies Prisma.OrderFeedbackSelect
+
+export const orderIncidentalCostSummarySelect = {
+  id: true,
+  reason: true,
+  amount: true,
+  notes: true,
+  createdAt: true,
+  createdBy: { select: { id: true, name: true } },
+} satisfies Prisma.OrderIncidentalCostSelect
+
 export const orderDetailSelect = {
   id: true,
   orderNumber: true,
@@ -49,6 +67,8 @@ export const orderDetailSelect = {
   currency: true,
   partyName: true,
   source: true,
+  orderManagementUnitId: true,
+  orderManagementUnit: { select: { id: true, name: true } },
   createdAt: true,
   updatedAt: true,
   customer: { select: { id: true, name: true, phone: true, email: true } },
@@ -70,6 +90,14 @@ export const orderDetailSelect = {
     },
     orderBy: { paidAt: "asc" as const },
   },
+  feedbacks: {
+    select: orderFeedbackSummarySelect,
+    orderBy: { createdAt: "desc" as const },
+  },
+  incidentalCosts: {
+    select: orderIncidentalCostSummarySelect,
+    orderBy: { createdAt: "asc" as const },
+  },
 } satisfies Prisma.OrderSelect
 
 // ─── Inferred types ────────────────────────────────────────────────────────────
@@ -77,6 +105,8 @@ export const orderDetailSelect = {
 export type OrderSummary = Prisma.OrderGetPayload<{ select: typeof orderSummarySelect }>
 export type OrderDetail = Prisma.OrderGetPayload<{ select: typeof orderDetailSelect }>
 export type OrderItemSummary = Prisma.OrderItemGetPayload<{ select: typeof orderItemSummarySelect }>
+export type OrderFeedbackSummary = Prisma.OrderFeedbackGetPayload<{ select: typeof orderFeedbackSummarySelect }>
+export type OrderIncidentalCostSummary = Prisma.OrderIncidentalCostGetPayload<{ select: typeof orderIncidentalCostSummarySelect }>
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -141,6 +171,14 @@ export type SerializedOrderItemSummary = Omit<OrderItemSummary, "price" | "total
   location: string | null
 }
 
+export type SerializedOrderIncidentalCostSummary = Omit<OrderIncidentalCostSummary, "amount"> & {
+  amount: number
+}
+
+export function serializeIncidentalCostSummary(cost: OrderIncidentalCostSummary): SerializedOrderIncidentalCostSummary {
+  return { ...cost, amount: Number(cost.amount) }
+}
+
 export function serializeOrderSummary(order: OrderSummary): SerializedOrderSummary {
   return { ...order, totalAmount: Number(order.totalAmount), paidAmount: Number(order.paidAmount) }
 }
@@ -161,6 +199,7 @@ export interface CreateOrderDto {
   discountAmount?: number
   partyName?: string
   source?: string
+  orderManagementUnitId?: string
 }
 
 export interface UpdateOrderDto extends Partial<CreateOrderDto> {}
@@ -204,6 +243,7 @@ export interface OrderFilters {
   status?: string
   customerId?: string
   search?: string
+  orderManagementUnitId?: string
   page: number
   pageSize: number
 }

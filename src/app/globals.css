@@ -66,6 +66,12 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* Cinematic luxury — dashboard accent tokens */
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-foreground: var(--accent-gold-foreground);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-sunken: var(--surface-sunken);
+
   /* Radius scale — 8px base, clean precision */
   --radius-sm:  calc(var(--radius) * 0.5);   /* 4px  */
   --radius-md:  calc(var(--radius) * 0.75);  /* 6px  */
@@ -144,6 +150,12 @@
   --chart-3: oklch(0.546 0.188 248.5);  /* blue-600 */
   --chart-4: oklch(0.553 0.149 52.5);   /* amber-600 */
   --chart-5: oklch(0.577 0.245 27.3);   /* red-500 */
+
+  /* ── Cinematic luxury — dashboard accent ────────────────────── */
+  --accent-gold: oklch(0.75 0.12 75);              /* warm gold */
+  --accent-gold-foreground: oklch(0.35 0.06 70);   /* dark gold text */
+  --surface-elevated: oklch(1 0 0);                /* raised card */
+  --surface-sunken: oklch(0.955 0.001 286);        /* recessed bg */
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -211,6 +223,12 @@
   --chart-3: oklch(0.623 0.183 241.1);  /* blue-400 */
   --chart-4: oklch(0.684 0.147 52.5);   /* amber-400 */
   --chart-5: oklch(0.628 0.258 29.2);   /* red-400 */
+
+  /* ── Cinematic luxury — dashboard accent ────────────────────── */
+  --accent-gold: oklch(0.80 0.14 75);              /* warm gold bright */
+  --accent-gold-foreground: oklch(0.20 0.04 70);   /* gold text on dark */
+  --surface-elevated: oklch(0.16 0.005 285.8);     /* elevated card */
+  --surface-sunken: oklch(0.10 0.004 285.8);       /* recessed bg */
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -140,7 +140,7 @@ export function WorkerTable({ workers }: Props) {
   })
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-lg border border-border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (

@@ -1,8 +1,11 @@
-import {
-  ASSIGNMENT_STATUS_LABELS,
-  ASSIGNMENT_STATUS_COLORS,
-} from "@/modules/workforce/types/workforce.types"
+import { Badge, type BadgeProps } from "@/components/ui/badge"
+import { ASSIGNMENT_STATUS_LABELS } from "@/modules/workforce/types/workforce.types"
 import type { WorkerAssignmentStatus } from "@/modules/workforce/types/workforce.types"
+
+const STATUS_VARIANTS: Record<WorkerAssignmentStatus, BadgeProps["variant"]> = {
+  IN_PROGRESS: "warning",
+  COMPLETED: "success",
+}
 
 interface Props {
   status: WorkerAssignmentStatus
@@ -10,10 +13,8 @@ interface Props {
 
 export function AssignmentStatusBadge({ status }: Props) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ASSIGNMENT_STATUS_COLORS[status]}`}
-    >
+    <Badge variant={STATUS_VARIANTS[status]}>
       {ASSIGNMENT_STATUS_LABELS[status]}
-    </span>
+    </Badge>
   )
 }

@@ -8,19 +8,23 @@ export type Resource =
   | "crm_leads"
   | "bookings"
   | "service_catalog"
-  | "workflow_templates"
   | "orders"
   | "order_items"
   | "order_payments"
-  | "order_item_workflow"
   | "order_item_assignment"
   | "workforce_workers"
   | "workforce_job_types"
   | "workforce_assignments"
   | "workforce_payroll"
   | "order_management_units"
+  | "finance_dashboard"
+  | "finance_expenses"
+  | "finance_invoices"
+  | "finance_payroll"
+  | "finance_accounts"
+  | "finance_reports"
 
-export type Action = "create" | "read" | "update" | "delete" | "manage"
+export type Action = "create" | "read" | "update" | "delete" | "manage" | "approve"
 
 export type PermissionString = `${Resource}:${Action}`
 

@@ -3,6 +3,7 @@ import Link from "next/link"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { workerService } from "@/modules/workforce/service/worker.service"
 import { jobTypeService } from "@/modules/workforce/service/job-type.service"
+import { serializeWorkerDetail } from "@/modules/workforce/types/workforce.types"
 import { updateWorkerAction } from "@/modules/workforce/actions/worker.actions"
 import { WorkerForm } from "@/modules/workforce/components/workers/WorkerForm"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ export default async function EditWorkerPage({ params }: Props) {
   }
 
   const jobTypes = await jobTypeService.getAllActiveJobTypes()
+  const serializedWorker = serializeWorkerDetail(worker)
 
   return (
     <div className="space-y-6">
@@ -42,7 +44,7 @@ export default async function EditWorkerPage({ params }: Props) {
       <WorkerForm
         action={updateWorkerAction}
         jobTypes={jobTypes}
-        defaultValues={worker}
+        defaultValues={serializedWorker}
         redirectTo={`/dashboard/workforce/workers/${id}`}
       />
     </div>

@@ -11,7 +11,6 @@ export const orderItemRepository = {
   async createWithName(
     data: AddOrderItemDto,
     name: string,
-    initialStepId: string | null,
   ): Promise<OrderItemSummary> {
     const { price, quantity, eventDate, deadline, orderId, serviceDefinitionId, notes } = data
     const totalPrice = price * quantity
@@ -26,32 +25,34 @@ export const orderItemRepository = {
         ...(eventDate && { eventDate }),
         ...(deadline && { deadline }),
         ...(notes && { notes }),
-        ...(initialStepId && { currentStepId: initialStepId }),
       },
       select: orderItemSummarySelect,
     })
   },
 
-  async update(id: string, data: UpdateOrderItemDto): Promise<OrderItemSummary> {
-    const { price, quantity, eventDate, deadline, notes, assignedToId } = data
+  async update(
+    id: string,
+    data: UpdateOrderItemDto,
+  ): Promise<OrderItemSummary & { orderId: string }> {
+    // Fetch giá trị cũ (price, quantity, orderId) trong 1 query nhỏ duy nhất
     const existing = await db.orderItem.findUniqueOrThrow({
       where: { id },
-      select: { price: true, quantity: true },
+      select: { price: true, quantity: true, orderId: true },
     })
-    const newPrice = price !== undefined ? price : Number(existing.price)
-    const newQty = quantity !== undefined ? quantity : existing.quantity
+    const newPrice = data.price !== undefined ? data.price : Number(existing.price)
+    const newQty = data.quantity !== undefined ? data.quantity : existing.quantity
     return db.orderItem.update({
       where: { id },
       data: {
-        ...(price !== undefined && { price: new Prisma.Decimal(price) }),
-        ...(quantity !== undefined && { quantity }),
+        ...(data.price !== undefined && { price: new Prisma.Decimal(data.price) }),
+        ...(data.quantity !== undefined && { quantity: data.quantity }),
         totalPrice: new Prisma.Decimal(newPrice * newQty),
-        ...(eventDate !== undefined && { eventDate: eventDate ?? null }),
-        ...(deadline !== undefined && { deadline: deadline ?? null }),
-        ...(notes !== undefined && { notes }),
-        ...(assignedToId !== undefined && { assignedToId: assignedToId || null }),
+        ...(data.eventDate !== undefined && { eventDate: data.eventDate ?? null }),
+        ...(data.deadline !== undefined && { deadline: data.deadline ?? null }),
+        ...(data.notes !== undefined && { notes: data.notes }),
+        ...(data.assignedToId !== undefined && { assignedToId: data.assignedToId || null }),
       },
-      select: orderItemSummarySelect,
+      select: { ...orderItemSummarySelect, orderId: true },
     })
   },
 

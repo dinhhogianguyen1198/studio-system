@@ -10,11 +10,12 @@ const customerSummarySelect = {
   email: true,
   phone: true,
   company: true,
+  address: true,
   status: true,
   source: true,
   tags: true,
   createdAt: true,
-  _count: { select: { leads: true, notes: true } },
+  _count: { select: { notes: true } },
 } as const
 
 const customerDetailInclude = {
@@ -48,7 +49,7 @@ const customerDetailInclude = {
 
 export const customerRepository = {
   async findMany(filters: CustomerFilters) {
-    const { search, status, source, page = 1, pageSize = 20 } = filters
+    const { search, page = 1, pageSize = 20 } = filters
     const skip = (page - 1) * pageSize
 
     const where = {
@@ -60,8 +61,6 @@ export const customerRepository = {
           { company: { contains: search, mode: "insensitive" as const } },
         ],
       }),
-      ...(status && { status }),
-      ...(source && { source }),
     }
 
     const [data, total] = await Promise.all([
@@ -111,48 +110,25 @@ export const customerRepository = {
   },
 
   async create(data: CreateCustomerInput & { createdById: string }) {
-    const tags = data.tags
-      ? data.tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean)
-      : []
-
     return db.customer.create({
       data: {
         name: data.name,
         email: data.email || null,
         phone: data.phone || null,
-        company: data.company || null,
         address: data.address || null,
-        status: data.status,
-        source: data.source,
-        tags,
         createdById: data.createdById,
       },
     })
   },
 
   async update(id: string, data: UpdateCustomerInput) {
-    const tags =
-      data.tags !== undefined
-        ? data.tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : undefined
-
     return db.customer.update({
       where: { id },
       data: {
         ...(data.name && { name: data.name }),
         email: data.email !== undefined ? data.email || null : undefined,
         phone: data.phone !== undefined ? data.phone || null : undefined,
-        company: data.company !== undefined ? data.company || null : undefined,
         address: data.address !== undefined ? data.address || null : undefined,
-        ...(data.status && { status: data.status }),
-        ...(data.source && { source: data.source }),
-        ...(tags !== undefined && { tags }),
       },
     })
   },
@@ -191,18 +167,4 @@ export const customerRepository = {
     return db.customerNote.findUnique({ where: { id: noteId } })
   },
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
-
-  async countByStatus() {
-    const [active, inactive, blocked] = await Promise.all([
-      db.customer.count({ where: { status: "ACTIVE" } }),
-      db.customer.count({ where: { status: "INACTIVE" } }),
-      db.customer.count({ where: { status: "BLOCKED" } }),
-    ])
-    return [
-      { status: "ACTIVE" as const, _count: { _all: active } },
-      { status: "INACTIVE" as const, _count: { _all: inactive } },
-      { status: "BLOCKED" as const, _count: { _all: blocked } },
-    ]
-  },
 }

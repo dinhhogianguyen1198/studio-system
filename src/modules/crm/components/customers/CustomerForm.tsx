@@ -43,7 +43,11 @@ function Field({
 
 const createInitial: ActionResult<{ id: string }> = { success: false, error: "" }
 
-export function CreateCustomerForm() {
+interface CreateCustomerFormProps {
+  onSuccess?: (id: string) => void
+}
+
+export function CreateCustomerForm({ onSuccess }: CreateCustomerFormProps) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(createCustomerAction, createInitial)
 
@@ -54,9 +58,14 @@ export function CreateCustomerForm() {
 
   useEffect(() => {
     if (state.success) {
-      router.push(`/dashboard/customers/${state.data.id}`)
+      if (onSuccess) {
+        onSuccess(state.data.id)
+      } else {
+        router.push(`/dashboard/customers/${state.data.id}`)
+      }
     }
-  }, [state, router])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
 
   const fe = !state.success ? state.fieldErrors : undefined
 

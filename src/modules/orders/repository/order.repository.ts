@@ -13,15 +13,21 @@ export const orderRepository = {
   async findMany(
     filters: OrderFilters,
   ): Promise<{ data: OrderSummary[]; total: number }> {
-    const { status, customerId, search, page, pageSize } = filters
+    const { status, customerId, search, orderManagementUnitId, page, pageSize } = filters
     const where: Prisma.OrderWhereInput = {
-      ...(status && { status: status as never }),
+      ...(status && {
+        status: status.includes(",")
+          ? { in: status.split(",") as never[] }
+          : (status as never),
+      }),
       ...(customerId && { customerId }),
+      ...(orderManagementUnitId && { orderManagementUnitId }),
       ...(search && {
         OR: [
           { orderNumber: { contains: search, mode: "insensitive" } },
           { contactName: { contains: search, mode: "insensitive" } },
           { contactPhone: { contains: search, mode: "insensitive" } },
+          { partyName: { contains: search, mode: "insensitive" } },
         ],
       }),
     }
@@ -47,7 +53,7 @@ export const orderRepository = {
   },
 
   async create(data: CreateOrderDto, createdById: string, orderNumber: string): Promise<OrderDetail> {
-    const { customerId, discountAmount, source, ...rest } = data
+    const { customerId, discountAmount, source, orderManagementUnitId, ...rest } = data
     return db.order.create({
       data: {
         ...rest,
@@ -55,6 +61,7 @@ export const orderRepository = {
         ...(customerId && { customerId }),
         discountAmount: discountAmount ? new Prisma.Decimal(discountAmount) : new Prisma.Decimal(0),
         ...(source && { source: source as never }),
+        ...(orderManagementUnitId && { orderManagementUnitId }),
         createdById,
       },
       select: orderDetailSelect,
@@ -62,7 +69,7 @@ export const orderRepository = {
   },
 
   async update(id: string, data: UpdateOrderDto): Promise<OrderDetail> {
-    const { customerId, discountAmount, source, ...rest } = data
+    const { customerId, discountAmount, source, orderManagementUnitId, ...rest } = data
     return db.order.update({
       where: { id },
       data: {
@@ -74,33 +81,29 @@ export const orderRepository = {
           discountAmount: new Prisma.Decimal(discountAmount),
         }),
         ...(source !== undefined && { source: (source as never) || null }),
+        ...(orderManagementUnitId !== undefined && {
+          orderManagementUnit: orderManagementUnitId
+            ? { connect: { id: orderManagementUnitId } }
+            : { disconnect: true },
+        }),
       },
       select: orderDetailSelect,
     })
   },
 
   async recalculateTotals(id: string): Promise<void> {
-    const items = await db.orderItem.findMany({
-      where: { orderId: id },
-      select: { totalPrice: true },
-    })
-    const payments = await db.orderPayment.findMany({
-      where: { orderId: id, type: { not: "REFUND" } },
-      select: { amount: true, type: true },
-    })
-    const refunds = await db.orderPayment.findMany({
-      where: { orderId: id, type: "REFUND" },
-      select: { amount: true },
-    })
-
-    const order = await db.order.findUnique({
-      where: { id },
-      select: { discountAmount: true },
-    })
+    const [items, payments, refunds, incidentalCosts, order] = await Promise.all([
+      db.orderItem.findMany({ where: { orderId: id }, select: { totalPrice: true } }),
+      db.orderPayment.findMany({ where: { orderId: id, type: { not: "REFUND" } }, select: { amount: true, type: true } }),
+      db.orderPayment.findMany({ where: { orderId: id, type: "REFUND" }, select: { amount: true } }),
+      db.orderIncidentalCost.findMany({ where: { orderId: id }, select: { amount: true } }),
+      db.order.findUnique({ where: { id }, select: { discountAmount: true } }),
+    ])
 
     const subtotal = items.reduce((sum, i) => sum + Number(i.totalPrice), 0)
+    const incidentalTotal = incidentalCosts.reduce((sum, c) => sum + Number(c.amount), 0)
     const discount = Number(order?.discountAmount ?? 0)
-    const totalAmount = Math.max(0, subtotal - discount)
+    const totalAmount = Math.max(0, subtotal - incidentalTotal - discount)
     const paidAmount =
       payments.reduce((sum, p) => sum + Number(p.amount), 0) -
       refunds.reduce((sum, r) => sum + Number(r.amount), 0)

@@ -1,38 +1,53 @@
 import Link from "next/link"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { orderService } from "@/modules/orders/service/order.service"
+import { orderManagementUnitService } from "@/modules/orders/service/order-management-unit.service"
 import { serializeOrderSummary } from "@/modules/orders/types/orders.types"
 import { OrderTable } from "@/modules/orders/components/orders/OrderTable"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
+const VALID_PAGE_SIZES = [10, 20, 50]
+
 interface Props {
-  searchParams: Promise<{ page?: string; status?: string; search?: string }>
+  searchParams: Promise<{
+    page?: string
+    pageSize?: string
+    status?: string
+    search?: string
+    managementUnitId?: string
+  }>
 }
 
 export default async function OrdersPage({ searchParams }: Props) {
   await requirePermission("orders", "read")
-  const { page, status, search } = await searchParams
+  const { page, pageSize, status, search, managementUnitId } = await searchParams
 
-  await orderService.autoUpdateOrderStatuses()
+  void orderService.autoUpdateOrderStatuses()
 
-  const currentPage = Number(page ?? 1)
-  const { data, total } = await orderService.findMany({
-    page: currentPage,
-    pageSize: 20,
-    status: status || undefined,
-    search: search || undefined,
-  })
+  const currentPage = Math.max(1, Number(page ?? 1))
+  const currentPageSize = VALID_PAGE_SIZES.includes(Number(pageSize)) ? Number(pageSize) : 20
+
+  const [{ data, total }, managementUnits] = await Promise.all([
+    orderService.findMany({
+      page: currentPage,
+      pageSize: currentPageSize,
+      status: status || undefined,
+      search: search || undefined,
+      orderManagementUnitId: managementUnitId || undefined,
+    }),
+    orderManagementUnitService.findAllActive(),
+  ])
 
   const meta = {
     page: currentPage,
-    pageSize: 20,
+    pageSize: currentPageSize,
     total,
-    totalPages: Math.ceil(total / 20),
+    totalPages: Math.ceil(total / currentPageSize),
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Đơn hàng</h1>
@@ -46,7 +61,11 @@ export default async function OrdersPage({ searchParams }: Props) {
         </Button>
       </div>
 
-      <OrderTable orders={data.map(serializeOrderSummary)} meta={meta} />
+      <OrderTable
+        orders={data.map(serializeOrderSummary)}
+        meta={meta}
+        managementUnits={managementUnits.map((u) => ({ id: u.id, name: u.name }))}
+      />
     </div>
   )
 }

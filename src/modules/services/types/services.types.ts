@@ -12,7 +12,6 @@ export const serviceDefinitionSummarySelect = {
   defaultDurationDays: true,
   isActive: true,
   sortOrder: true,
-  workflowTemplate: { select: { id: true, name: true } },
 } satisfies Prisma.ServiceDefinitionSelect
 
 export const serviceDefinitionDetailSelect = {
@@ -28,16 +27,6 @@ export const serviceDefinitionDetailSelect = {
   sortOrder: true,
   createdAt: true,
   updatedAt: true,
-  workflowTemplate: {
-    select: {
-      id: true,
-      name: true,
-      steps: {
-        select: { id: true, key: true, name: true, color: true, sortOrder: true, isFinal: true },
-        orderBy: { sortOrder: "asc" as const },
-      },
-    },
-  },
   createdBy: { select: { id: true, name: true } },
 } satisfies Prisma.ServiceDefinitionSelect
 
@@ -85,7 +74,6 @@ export interface CreateServiceDefinitionDto {
   defaultSlaHours?: number
   isActive?: boolean
   sortOrder?: number
-  workflowTemplateId?: string
 }
 
 export interface UpdateServiceDefinitionDto extends Partial<CreateServiceDefinitionDto> {}

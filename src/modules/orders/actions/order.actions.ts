@@ -74,8 +74,6 @@ export async function createOrderWithItemsAction(
           phone: orderData.contactPhone || undefined,
           email: orderData.contactEmail || undefined,
           address: newCustomerAddress || undefined,
-          status: "ACTIVE",
-          source: "DIRECT",
         },
         session.user.id,
       )

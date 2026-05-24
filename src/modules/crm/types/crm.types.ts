@@ -1,6 +1,7 @@
 // ─── Enums (mirror Prisma enums) ──────────────────────────────────────────────
 
 export type CustomerStatus = "ACTIVE" | "INACTIVE" | "BLOCKED"
+
 export type CustomerSource =
   | "DIRECT"
   | "REFERRAL"
@@ -26,15 +27,15 @@ export interface CustomerSummary {
   email: string | null
   phone: string | null
   company: string | null
+  address: string | null
   status: CustomerStatus
   source: CustomerSource
   tags: string[]
-  _count: { leads: number; notes: number }
+  _count: { notes: number }
   createdAt: Date
 }
 
 export interface CustomerDetail extends CustomerSummary {
-  address: string | null
   createdBy: { id: string; name: string | null; email: string }
   notes: CustomerNoteRow[]
   leads: LeadSummary[]
@@ -85,8 +86,6 @@ export interface LeadNoteRow {
 
 export interface CustomerFilters {
   search?: string
-  status?: CustomerStatus
-  source?: CustomerSource
   page?: number
   pageSize?: number
 }
@@ -120,9 +119,9 @@ export interface CrmError {
 // ─── Label maps ───────────────────────────────────────────────────────────────
 
 export const CUSTOMER_STATUS_LABELS: Record<CustomerStatus, string> = {
-  ACTIVE: "Hoạt động",
+  ACTIVE: "Đang hoạt động",
   INACTIVE: "Không hoạt động",
-  BLOCKED: "Đã chặn",
+  BLOCKED: "Bị chặn",
 }
 
 export const CUSTOMER_SOURCE_LABELS: Record<CustomerSource, string> = {

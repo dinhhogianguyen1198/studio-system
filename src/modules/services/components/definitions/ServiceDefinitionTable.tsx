@@ -13,16 +13,14 @@ import {
 } from "@/components/ui/table"
 import { Pencil } from "lucide-react"
 import type { SerializedServiceDefinitionSummary } from "../../types/services.types"
-import type { WorkflowTemplateSummary } from "@/modules/workflow/types/workflow.types"
 import { DeleteServiceDefinitionButton } from "./DeleteServiceDefinitionButton"
 import { EditServiceDefinitionDialog } from "./EditServiceDefinitionDialog"
 
 interface Props {
   services: SerializedServiceDefinitionSummary[]
-  workflowTemplates: WorkflowTemplateSummary[]
 }
 
-export function ServiceDefinitionTable({ services, workflowTemplates }: Props) {
+export function ServiceDefinitionTable({ services }: Props) {
   const [editingService, setEditingService] = useState<SerializedServiceDefinitionSummary | null>(null)
 
   if (services.length === 0) {
@@ -41,7 +39,6 @@ export function ServiceDefinitionTable({ services, workflowTemplates }: Props) {
             <TableHead>Tên dịch vụ</TableHead>
             <TableHead>Giá mặc định</TableHead>
             <TableHead>Thời hạn trả file</TableHead>
-            <TableHead>Workflow</TableHead>
             <TableHead className="text-center">Trạng thái</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
@@ -63,13 +60,6 @@ export function ServiceDefinitionTable({ services, workflowTemplates }: Props) {
                   <span className="text-sm">{svc.defaultDurationDays} ngày</span>
                 ) : (
                   <span className="text-muted-foreground text-xs">—</span>
-                )}
-              </TableCell>
-              <TableCell>
-                {svc.workflowTemplate ? (
-                  <Badge variant="outline">{svc.workflowTemplate.name}</Badge>
-                ) : (
-                  <span className="text-muted-foreground text-xs">Chưa gán</span>
                 )}
               </TableCell>
               <TableCell className="text-center">
@@ -96,7 +86,6 @@ export function ServiceDefinitionTable({ services, workflowTemplates }: Props) {
 
       <EditServiceDefinitionDialog
         service={editingService}
-        workflowTemplates={workflowTemplates}
         onClose={() => setEditingService(null)}
       />
     </>

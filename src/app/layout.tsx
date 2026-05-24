@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StudioBase",
+  title: "Lu Production",
   description: "Hệ thống quản lý studio",
 };
 

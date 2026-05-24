@@ -16,8 +16,8 @@ const DEV_ROLE: RoleWithPermissions = {
   permissions: [
     "users", "roles", "permissions", "settings", "audit_logs",
     "crm_customers", "crm_leads", "bookings",
-    "service_catalog", "workflow_templates", "orders", "order_items",
-    "order_payments", "order_item_workflow", "order_item_assignment",
+    "service_catalog", "orders", "order_items",
+    "order_payments", "order_item_assignment",
     "workforce_workers", "workforce_job_types", "workforce_assignments", "workforce_payroll",
   ].flatMap((resource) =>
     ["create", "read", "update", "delete", "manage"].map((action) => ({

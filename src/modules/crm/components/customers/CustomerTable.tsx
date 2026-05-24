@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import {
   Table,
@@ -11,28 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Users } from "lucide-react"
+import { CreateCustomerButton } from "./CreateCustomerDialog"
 import { CustomerDetailDialog } from "./CustomerDetailDialog"
 import type { CustomerSummary } from "../../types/crm.types"
-import {
-  CUSTOMER_STATUS_LABELS,
-  CUSTOMER_SOURCE_LABELS,
-} from "../../types/crm.types"
 import type { PaginationMeta } from "@/shared/types/api.types"
-
-// ─── Status badge ─────────────────────────────────────────────────────────────
-
-function CustomerStatusBadge({ status }: { status: CustomerSummary["status"] }) {
-  const variant =
-    status === "ACTIVE"
-      ? "success"
-      : status === "INACTIVE"
-        ? "muted"
-        : "destructive"
-  return <Badge variant={variant}>{CUSTOMER_STATUS_LABELS[status]}</Badge>
-}
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
@@ -96,9 +79,7 @@ export function CustomerTable({ data, meta, currentUserId }: CustomerTableProps)
       <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
         <Users className="size-10 opacity-40" />
         <p className="text-sm">Chưa có khách hàng nào</p>
-        <Button asChild size="sm">
-          <Link href="/dashboard/customers/new">Tạo khách hàng đầu tiên</Link>
-        </Button>
+        <CreateCustomerButton />
       </div>
     )
   }
@@ -110,12 +91,10 @@ export function CustomerTable({ data, meta, currentUserId }: CustomerTableProps)
           <TableHeader>
             <TableRow>
               <TableHead>Tên</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>SĐT</TableHead>
-              <TableHead>Công ty</TableHead>
-              <TableHead>Nguồn</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Leads</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Địa chỉ</TableHead>
+              <TableHead>Ngày tạo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,24 +106,20 @@ export function CustomerTable({ data, meta, currentUserId }: CustomerTableProps)
               >
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {customer.email ?? "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
                   {customer.phone ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {customer.company ?? "—"}
+                  {customer.email ?? "—"}
                 </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {CUSTOMER_SOURCE_LABELS[customer.source]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <CustomerStatusBadge status={customer.status} />
+                <TableCell className="max-w-50 truncate text-muted-foreground">
+                  {customer.address ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {customer._count.leads}
+                  {new Date(customer.createdAt).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })}
                 </TableCell>
               </TableRow>
             ))}

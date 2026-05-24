@@ -21,10 +21,12 @@ const SEGMENT_LABELS: Record<string, string> = {
   services: "Dịch vụ",
   categories: "Danh mục",
   orders: "Đơn hàng",
-  workflow: "Workflow",
-  templates: "Templates",
   new: "Tạo mới",
   edit: "Chỉnh sửa",
+  workforce: "Nhân lực",
+  workers: "Nhân viên",
+  payroll: "Bảng lương",
+  "job-types": "Loại công việc",
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -82,13 +84,13 @@ export function BreadcrumbNav({ className }: { className?: string }) {
           <span key={crumb.href} className="flex items-center gap-1">
             <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
             {isLast ? (
-              <span className="font-medium text-foreground truncate max-w-[160px]">
+              <span className="font-medium text-foreground truncate max-w-40">
                 {crumb.label}
               </span>
             ) : (
               <Link
                 href={crumb.href}
-                className="text-muted-foreground hover:text-foreground transition-colors truncate max-w-[120px]"
+                className="text-muted-foreground hover:text-foreground transition-colors truncate max-w-30"
               >
                 {crumb.label}
               </Link>

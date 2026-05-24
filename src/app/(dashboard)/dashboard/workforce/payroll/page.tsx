@@ -1,53 +1,52 @@
 import { Suspense } from "react"
-import Link from "next/link"
 import { requirePermission } from "@/shared/lib/auth-utils"
-import { workerService } from "@/modules/workforce/service/worker.service"
 import { workerAssignmentService } from "@/modules/workforce/service/worker-assignment.service"
 import { PayrollSummaryDashboard } from "@/modules/workforce/components/payroll/PayrollSummaryDashboard"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import {
+  serializeOrderItemWorker,
+  type WorkerPayrollSummary,
+} from "@/modules/workforce/types/workforce.types"
 
 async function PayrollContent() {
-  const [workersResult, allAssignments] = await Promise.all([
-    workerService.getWorkers({ page: 1, pageSize: 1 }),
-    workerAssignmentService.getAssignments({}),
-  ])
+  const allAssignments = await workerAssignmentService.getAssignments({})
 
-  const activeWorkersResult = await workerService.getWorkers({
-    page: 1,
-    pageSize: 1,
-    isActive: true,
-  })
+  const unpaidAssignments = allAssignments.filter((a) => a.paidAt === null)
 
-  const totalWorkers = workersResult.meta.total
-  const activeWorkers = activeWorkersResult.meta.total
-  const totalAssignments = allAssignments.length
-  const completedAssignments = allAssignments.filter(
-    (a) => a.status === "COMPLETED",
-  ).length
+  // Tổng hợp theo nhân viên — chỉ lấy những nhân viên có phân công chưa thanh toán
+  const workerMap = new Map<string, WorkerPayrollSummary>()
+  for (const a of unpaidAssignments) {
+    const existing = workerMap.get(a.workerId)
+    if (existing) {
+      existing.unpaidCount++
+      existing.unpaidAmount += Number(a.totalCost)
+      existing.assignmentIds.push(a.id)
+      existing.assignments.push(serializeOrderItemWorker(a))
+    } else {
+      workerMap.set(a.workerId, {
+        workerId: a.workerId,
+        workerName: a.workerNameSnapshot,
+        workerAvatarUrl: a.worker.avatarUrl,
+        unpaidCount: 1,
+        unpaidAmount: Number(a.totalCost),
+        assignmentIds: [a.id],
+        assignments: [serializeOrderItemWorker(a)],
+      })
+    }
+  }
+  const workerSummaries = Array.from(workerMap.values()).sort(
+    (a, b) => b.unpaidAmount - a.unpaidAmount,
+  )
 
-  const totalCost = allAssignments
-    .filter((a) => a.status !== "CANCELLED")
-    .reduce((sum, a) => sum + Number(a.totalCost), 0)
-
-  // Sort by most recent and take latest 20
-  const recentAssignments = [...allAssignments]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-    .slice(0, 20)
+  const assignments = allAssignments
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 100)
+    .map(serializeOrderItemWorker)
 
   return (
     <PayrollSummaryDashboard
       data={{
-        totalWorkers,
-        activeWorkers,
-        totalAssignments,
-        completedAssignments,
-        totalCost,
-        currency: "VND",
-        recentAssignments,
+        workerSummaries,
+        assignments,
       }}
     />
   )
@@ -58,25 +57,14 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/dashboard/workforce">
-            <ArrowLeft className="size-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Bảng lương</h1>
-          <p className="text-sm text-muted-foreground">
-            Tổng quan chi phí ekip và phân công
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Bảng lương</h1>
+        <p className="text-sm text-muted-foreground">
+          Tổng quan chi phí nhân sự và phân công
+        </p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="h-64 animate-pulse rounded-xl bg-muted" />
-        }
-      >
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted" />}>
         <PayrollContent />
       </Suspense>
     </div>

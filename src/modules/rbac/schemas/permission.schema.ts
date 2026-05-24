@@ -6,9 +6,9 @@ import type { Resource, Action } from "@/shared/types/rbac.types"
 const RESOURCES: [Resource, ...Resource[]] = [
   "users", "roles", "permissions", "settings", "audit_logs",
   "crm_customers", "crm_leads", "bookings",
-  "service_catalog", "workflow_templates",
+  "service_catalog",
   "orders", "order_items", "order_payments",
-  "order_item_workflow", "order_item_assignment",
+  "order_item_assignment",
   "workforce_workers", "workforce_job_types",
   "workforce_assignments", "workforce_payroll",
 ]

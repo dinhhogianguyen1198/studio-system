@@ -65,9 +65,22 @@ export const orderService = {
     return orderRepository.create(data, createdById, orderNumber)
   },
 
+  // Fix #8: Xóa findById() thừa — db.order.update() tự throw nếu không tìm thấy record
   async update(id: string, data: UpdateOrderDto): Promise<OrderDetail> {
-    await orderService.findById(id)
-    return orderRepository.update(id, data)
+    try {
+      return await orderRepository.update(id, data)
+    } catch (err: unknown) {
+      // Prisma P2025 = Record not found
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        (err as { code: string }).code === "P2025"
+      ) {
+        throw new Error("ORDER_NOT_FOUND")
+      }
+      throw err
+    }
   },
 
   async delete(id: string): Promise<void> {
@@ -100,10 +113,19 @@ export const orderService = {
     }
   },
 
+  // Fix #1 + #9:
+  // - Option C: Chỉ load orders có ít nhất 1 item (orders không có item luôn là NEW)
+  // - Fix #9: Tính computeOrderStatus() 1 lần duy nhất, dùng Map để tránh double-compute
+  // - Batch updates: group orders theo newStatus → dùng updateMany thay vì N updates riêng lẻ
   async autoUpdateOrderStatuses(): Promise<number> {
     const now = new Date()
+
+    // Chỉ load orders chưa COMPLETED và có ít nhất 1 item
     const orders = await db.order.findMany({
-      where: { status: { not: "COMPLETED" } },
+      where: {
+        status: { not: "COMPLETED" },
+        items: { some: {} }, // chỉ orders có items
+      },
       select: {
         id: true,
         status: true,
@@ -115,21 +137,35 @@ export const orderService = {
       },
     })
 
-    const toUpdate = orders.filter((o) => {
+    // Fix #9: Tính status 1 lần, lưu vào Map
+    const statusMap = new Map<string, OrderStatus>()
+    for (const o of orders) {
       const newStatus = computeOrderStatus(o.items, o.paidAmount, o.totalAmount, now)
-      return newStatus !== o.status
-    })
+      if (newStatus !== o.status) {
+        statusMap.set(o.id, newStatus)
+      }
+    }
 
-    if (toUpdate.length === 0) return 0
+    if (statusMap.size === 0) return 0
+
+    // Group by newStatus → dùng updateMany để giảm số lượng queries
+    const grouped = new Map<OrderStatus, string[]>()
+    for (const [id, status] of statusMap) {
+      const ids = grouped.get(status) ?? []
+      ids.push(id)
+      grouped.set(status, ids)
+    }
 
     await db.$transaction(
-      toUpdate.map((o) => {
-        const newStatus = computeOrderStatus(o.items, o.paidAmount, o.totalAmount, now)
-        return db.order.update({ where: { id: o.id }, data: { status: newStatus } })
-      }),
+      Array.from(grouped.entries()).map(([status, ids]) =>
+        db.order.updateMany({
+          where: { id: { in: ids } },
+          data: { status },
+        }),
+      ),
     )
 
-    return toUpdate.length
+    return statusMap.size
   },
 
   async _generateOrderNumber(): Promise<string> {
@@ -139,3 +175,4 @@ export const orderService = {
     return `ORD-${year}-${String(seq).padStart(4, "0")}`
   },
 }
+

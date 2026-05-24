@@ -8,6 +8,7 @@ import { X, ArrowRight, User, PartyPopper, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { SerializedServiceDefinitionSummary } from "@/modules/services/types/services.types"
+import type { OrderManagementUnitSummary } from "@/modules/orders/types/order-management-unit.types"
 import { createOrderWithItemsAction } from "@/modules/orders/actions/order.actions"
 import { CustomerAutocompleteInput, type CustomerOption } from "./CustomerAutocompleteInput"
 import { OrderItemsEditor, type OrderItemDraft } from "./OrderItemsEditor"
@@ -16,6 +17,7 @@ import { FinancialSummaryCard } from "./FinancialSummaryCard"
 interface Props {
   customers: CustomerOption[]
   services: SerializedServiceDefinitionSummary[]
+  managementUnits: OrderManagementUnitSummary[]
 }
 
 const FORM_ID = "new-order-form"
@@ -56,7 +58,7 @@ function SectionHeader({
   )
 }
 
-export function NewOrderForm({ customers, services }: Props) {
+export function NewOrderForm({ customers, services, managementUnits }: Props) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(createOrderWithItemsAction, initialState)
 
@@ -73,10 +75,11 @@ export function NewOrderForm({ customers, services }: Props) {
   const [discount, setDiscount] = useState(0)
   const [applyVat, setApplyVat] = useState(false)
 
-  // Order info (party + notes)
+  // Order info (party + notes + management unit)
   const [partyName, setPartyName] = useState("")
   const [notes, setNotes] = useState("")
   const [internalNotes, setInternalNotes] = useState("")
+  const [orderManagementUnitId, setOrderManagementUnitId] = useState("")
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const vatAmount = applyVat ? Math.round((subtotal - discount) * VAT_RATE) : 0
@@ -128,6 +131,7 @@ export function NewOrderForm({ customers, services }: Props) {
       <input type="hidden" name="contactEmail" value={contactEmail} />
       <input type="hidden" name="newCustomerAddress" value={contactAddress} />
       <input type="hidden" name="partyName" value={partyName} />
+      <input type="hidden" name="orderManagementUnitId" value={orderManagementUnitId} />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
         {/* ── LEFT COLUMN ─────────────────────────────────── */}
@@ -203,15 +207,35 @@ export function NewOrderForm({ customers, services }: Props) {
               subtitle="Thông tin chung về sự kiện / tiệc"
             />
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="partyNameInput" className={labelClass}>Tên tiệc</label>
-                <input
-                  id="partyNameInput"
-                  placeholder="VD: Tiệc cưới Anh - Minh, Sinh nhật bé An..."
-                  value={partyName}
-                  onChange={(e) => setPartyName(e.target.value)}
-                  className={inputClass}
-                />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label htmlFor="partyNameInput" className={labelClass}>Tên tiệc</label>
+                  <input
+                    id="partyNameInput"
+                    placeholder="VD: Tiệc cưới Anh - Minh, Sinh nhật bé An..."
+                    value={partyName}
+                    onChange={(e) => setPartyName(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="orderManagementUnitSelect" className={labelClass}>
+                    Đơn vị quản lý
+                  </label>
+                  <select
+                    id="orderManagementUnitSelect"
+                    value={orderManagementUnitId}
+                    onChange={(e) => setOrderManagementUnitId(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">— Chọn đơn vị —</option>
+                    {managementUnits.map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-1.5">

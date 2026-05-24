@@ -67,7 +67,4 @@ export const customerService = {
     return customerRepository.deleteNote(noteId)
   },
 
-  async getStats() {
-    return customerRepository.countByStatus()
-  },
 }

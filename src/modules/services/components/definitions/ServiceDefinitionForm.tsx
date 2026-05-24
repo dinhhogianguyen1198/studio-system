@@ -4,11 +4,9 @@ import { useActionState, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { SerializedServiceDefinitionSummary } from "../../types/services.types"
-import type { WorkflowTemplateSummary } from "@/modules/workflow/types/workflow.types"
 
 interface Props {
   action: (
@@ -16,7 +14,6 @@ interface Props {
     formData: FormData,
   ) => Promise<ActionResult<{ id: string }>>
   defaultValues?: Partial<SerializedServiceDefinitionSummary>
-  workflowTemplates: WorkflowTemplateSummary[]
   submitLabel?: string
   onSuccess?: () => void
 }
@@ -33,7 +30,6 @@ function formatPrice(raw: string): string {
 export function ServiceDefinitionForm({
   action,
   defaultValues,
-  workflowTemplates,
   submitLabel = "Tạo dịch vụ",
   onSuccess,
 }: Props) {
@@ -48,9 +44,6 @@ export function ServiceDefinitionForm({
   )
   const [durationDays, setDurationDays] = useState(
     defaultValues?.defaultDurationDays?.toString() ?? "3",
-  )
-  const [workflowTemplateId, setWorkflowTemplateId] = useState(
-    defaultValues?.workflowTemplate?.id ?? "",
   )
   const [sortOrder, setSortOrder] = useState(defaultValues?.sortOrder?.toString() ?? "0")
   const [isActive, setIsActive] = useState(defaultValues?.isActive ?? true)
@@ -145,25 +138,6 @@ export function ServiceDefinitionForm({
             onChange={(e) => setDurationDays(e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <label htmlFor="workflowTemplateId" className="block text-sm font-medium">
-          Workflow template
-        </label>
-        <Select
-          id="workflowTemplateId"
-          name="workflowTemplateId"
-          value={workflowTemplateId}
-          onChange={(e) => setWorkflowTemplateId(e.target.value)}
-        >
-          <option value="">Không gán workflow</option>
-          {workflowTemplates.map((tpl) => (
-            <option key={tpl.id} value={tpl.id}>
-              {tpl.name} ({tpl.steps.length} bước)
-            </option>
-          ))}
-        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

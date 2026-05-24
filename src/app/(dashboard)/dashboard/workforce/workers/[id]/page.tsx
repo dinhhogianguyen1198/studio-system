@@ -3,6 +3,7 @@ import Link from "next/link"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { workerService } from "@/modules/workforce/service/worker.service"
 import { jobTypeService } from "@/modules/workforce/service/job-type.service"
+import { serializeWorkerDetail } from "@/modules/workforce/types/workforce.types"
 import { WorkerStatusBadge } from "@/modules/workforce/components/workers/WorkerStatusBadge"
 import { WorkerRatesEditor } from "@/modules/workforce/components/workers/WorkerRatesEditor"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -27,6 +28,7 @@ export default async function WorkerDetailPage({ params }: Props) {
   }
 
   const jobTypes = await jobTypeService.getAllActiveJobTypes()
+  const serializedWorker = serializeWorkerDetail(worker)
 
   const initials = worker.name
     .split(" ")
@@ -147,7 +149,7 @@ export default async function WorkerDetailPage({ params }: Props) {
         <div className="lg:col-span-2">
           <WorkerRatesEditor
             workerId={worker.id}
-            rates={worker.rates}
+            rates={serializedWorker.rates}
             jobTypes={jobTypes}
           />
         </div>

@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type {
   JobTypeSummary,
-  WorkerDetail,
+  SerializedWorkerDetail,
 } from "@/modules/workforce/types/workforce.types"
 import type { ActionResult } from "@/shared/types/api.types"
 
@@ -35,7 +35,7 @@ interface Props {
     formData: FormData,
   ) => Promise<ActionResult<{ id: string }>>
   jobTypes: JobTypeSummary[]
-  defaultValues?: Partial<WorkerDetail>
+  defaultValues?: Partial<SerializedWorkerDetail>
   redirectTo?: string
 }
 

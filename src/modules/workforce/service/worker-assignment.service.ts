@@ -15,6 +15,13 @@ export const workerAssignmentService = {
     return workerAssignmentRepository.findByOrderItem(orderItemId)
   },
 
+  // Fix #2: Batch load assignments — 1 query cho nhiều items thay vì N queries
+  async getAssignmentsByOrderItemIds(
+    orderItemIds: string[],
+  ): Promise<Map<string, OrderItemWorkerDetail[]>> {
+    return workerAssignmentRepository.findByOrderItemIds(orderItemIds)
+  },
+
   async getAssignments(filters: PayrollFilters): Promise<OrderItemWorkerDetail[]> {
     return workerAssignmentRepository.findMany(filters)
   },
@@ -70,12 +77,10 @@ export const workerAssignmentService = {
     const assignment = await workerAssignmentRepository.findById(data.id)
     if (!assignment) throw new Error("ASSIGNMENT_NOT_FOUND")
 
-    // Validate status transition
+    // Validate status transition: IN_PROGRESS → COMPLETED only
     const validTransitions: Record<string, WorkerAssignmentStatus[]> = {
-      ASSIGNED: ["IN_PROGRESS", "CANCELLED"],
-      IN_PROGRESS: ["COMPLETED", "CANCELLED"],
+      IN_PROGRESS: ["COMPLETED"],
       COMPLETED: [],
-      CANCELLED: [],
     }
     const allowed = validTransitions[assignment.status] ?? []
     if (!allowed.includes(data.status as WorkerAssignmentStatus)) {
@@ -83,7 +88,7 @@ export const workerAssignmentService = {
     }
 
     const now = new Date()
-    const startedAt = data.status === "IN_PROGRESS" ? now : undefined
+    const startedAt = undefined
     const completedAt = data.status === "COMPLETED" ? now : undefined
 
     return workerAssignmentRepository.updateStatus(
@@ -98,8 +103,20 @@ export const workerAssignmentService = {
   async removeAssignment(id: string): Promise<void> {
     const assignment = await workerAssignmentRepository.findById(id)
     if (!assignment) throw new Error("ASSIGNMENT_NOT_FOUND")
-    if (assignment.status !== "ASSIGNED") throw new Error("CANNOT_REMOVE_ACTIVE_ASSIGNMENT")
+    if (assignment.status === "COMPLETED") throw new Error("CANNOT_REMOVE_COMPLETED_ASSIGNMENT")
     await workerAssignmentRepository.delete(id)
+  },
+
+  async markAsPaid(id: string): Promise<OrderItemWorkerDetail> {
+    const assignment = await workerAssignmentRepository.findById(id)
+    if (!assignment) throw new Error("ASSIGNMENT_NOT_FOUND")
+    if (assignment.paidAt) throw new Error("ALREADY_PAID")
+    return workerAssignmentRepository.markAsPaid(id, new Date())
+  },
+
+  async markMultiplePaid(ids: string[]): Promise<{ count: number }> {
+    if (ids.length === 0) return { count: 0 }
+    return workerAssignmentRepository.markMultiplePaid(ids, new Date())
   },
 
   async getServiceCostSummary(orderItemId: string): Promise<{ totalCost: number; workerCount: number }> {

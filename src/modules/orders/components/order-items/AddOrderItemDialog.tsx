@@ -187,6 +187,7 @@ export function AddOrderItemDialog({ orderId, services }: Props) {
                 </div>
 
                 <form action={formAction} className="overflow-y-auto p-6">
+                  <input type="hidden" name="orderId" value={orderId} />
                   <input type="hidden" name="serviceDefinitionId" value={selected?.id ?? ""} />
                   <input type="hidden" name="price" value={priceRaw} />
 

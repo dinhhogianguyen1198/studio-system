@@ -17,6 +17,7 @@ export const createOrderSchema = z.object({
   discountAmount: z.coerce.number().min(0).optional(),
   partyName: z.preprocess(emptyToUndefined, z.string().max(200).optional()),
   source: z.string().max(50).optional(),
+  orderManagementUnitId: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
 })
 
 export const updateOrderSchema = createOrderSchema.partial()
@@ -51,6 +52,15 @@ export const recordPaymentSchema = z.object({
   paidAt: z.coerce.date().optional(),
 })
 
+export const updatePaymentSchema = z.object({
+  type: z.enum(["DEPOSIT", "PARTIAL", "FINAL", "REFUND"]),
+  amount: z.coerce.number().positive("Số tiền phải lớn hơn 0"),
+  method: z.enum(["CASH", "BANK_TRANSFER", "CARD", "OTHER"]),
+  reference: z.string().max(100).optional(),
+  note: z.string().max(500).optional(),
+  paidAt: z.coerce.date().optional(),
+})
+
 export const orderItemInputSchema = z.object({
   serviceDefinitionId: z.string().cuid("ID dịch vụ không hợp lệ"),
   price: z.coerce.number().min(0, "Giá không hợp lệ"),
@@ -71,5 +81,24 @@ export type UpdateOrderInput = z.infer<typeof updateOrderSchema>
 export type AddOrderItemInput = z.infer<typeof addOrderItemSchema>
 export type UpdateOrderItemInput = z.infer<typeof updateOrderItemSchema>
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>
+export type UpdatePaymentInput = z.infer<typeof updatePaymentSchema>
+
+export const createOrderFeedbackSchema = z.object({
+  orderId: z.string().cuid(),
+  content: z.string().min(1, "Nội dung phản hồi không được trống").max(2000),
+})
+
+export const createIncidentalCostSchema = z.object({
+  orderId: z.string().cuid(),
+  reason: z.string().min(1, "Tên chi phí không được trống").max(200),
+  amount: z.coerce.number().positive("Số tiền phải lớn hơn 0"),
+  notes: z.preprocess((v) => (v === "" ? undefined : v), z.string().max(500).optional()),
+})
+
+export const updateIncidentalCostSchema = z.object({
+  reason: z.string().min(1, "Tên chi phí không được trống").max(200),
+  amount: z.coerce.number().positive("Số tiền phải lớn hơn 0"),
+  notes: z.preprocess((v) => (v === "" ? undefined : v), z.string().max(500).optional()),
+})
 export type OrderItemInput = z.infer<typeof orderItemInputSchema>
 export type CreateOrderWithItemsInput = z.infer<typeof createOrderWithItemsSchema>

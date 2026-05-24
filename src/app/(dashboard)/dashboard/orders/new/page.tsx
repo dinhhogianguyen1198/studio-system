@@ -3,19 +3,21 @@ import { ArrowLeft, ShoppingBag } from "lucide-react"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { db } from "@/shared/lib/prisma"
 import { serviceDefinitionService } from "@/modules/services/service/service-definition.service"
+import { orderManagementUnitService } from "@/modules/orders/service/order-management-unit.service"
 import { NewOrderForm } from "@/modules/orders/components/orders/NewOrderForm"
 import { serializeServiceDefinitionSummary } from "@/modules/services/types/services.types"
 
 export default async function NewOrderPage() {
   await requirePermission("orders", "create")
 
-  const [customers, rawServices] = await Promise.all([
+  const [customers, rawServices, managementUnits] = await Promise.all([
     db.customer.findMany({
       where: { status: "ACTIVE" },
       select: { id: true, name: true, phone: true, email: true, address: true },
       orderBy: { name: "asc" },
     }),
     serviceDefinitionService.findAllActive(),
+    orderManagementUnitService.findAllActive(),
   ])
 
   const services = rawServices.map(serializeServiceDefinitionSummary)
@@ -33,7 +35,7 @@ export default async function NewOrderPage() {
 
       {/* Page Header */}
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
           <ShoppingBag className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -46,7 +48,7 @@ export default async function NewOrderPage() {
         </div>
       </div>
 
-      <NewOrderForm customers={customers} services={services} />
+      <NewOrderForm customers={customers} services={services} managementUnits={managementUnits} />
     </div>
   )
 }

@@ -8,7 +8,8 @@ import { navItems, groupNavItems } from "@/config/navigation"
 import { filterNavByPermissions } from "@/components/layout/nav-filter"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu, Layers } from "lucide-react"
+import { Menu } from "lucide-react"
+import Image from "next/image"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
 import type { NavItem } from "@/config/navigation"
 
@@ -17,7 +18,7 @@ interface MobileSidebarProps {
   appName?: string
 }
 
-export function MobileSidebar({ role, appName = "Studio" }: MobileSidebarProps) {
+export function MobileSidebar({ role, appName = "Lu Production" }: MobileSidebarProps) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -39,9 +40,13 @@ export function MobileSidebar({ role, appName = "Studio" }: MobileSidebarProps) 
 
       <SheetContent side="left" className="w-[280px] p-0 bg-sidebar text-sidebar-foreground">
         <SheetHeader className="flex flex-row items-center gap-3 h-16 px-4 border-b border-sidebar-border">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
-            <Layers className="w-4 h-4" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="StudioOS"
+            width={32}
+            height={32}
+            className="shrink-0 object-contain brightness-0"
+          />
           <SheetTitle className="font-semibold text-sm text-sidebar-foreground">
             {appName}
           </SheetTitle>

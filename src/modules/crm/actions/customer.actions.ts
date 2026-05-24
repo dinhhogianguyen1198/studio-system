@@ -12,7 +12,6 @@ import {
 import { requireSession } from "@/shared/lib/auth-utils"
 import { writeAuditLog } from "@/shared/lib/audit"
 import type { ActionResult } from "@/shared/types/api.types"
-import type { CustomerStatus, CustomerSource } from "../types/crm.types"
 import { orderService } from "@/modules/orders/service/order.service"
 
 // ─── Serialized types for client components ────────────────────────────────────
@@ -30,12 +29,8 @@ export type CustomerDetailData = {
   name: string
   email: string | null
   phone: string | null
-  company: string | null
   address: string | null
-  status: CustomerStatus
-  source: CustomerSource
-  tags: string[]
-  _count: { leads: number; notes: number }
+  _count: { notes: number }
   createdAt: string
   updatedAt: string
   createdBy: { id: string; name: string | null; email: string }
@@ -217,13 +212,8 @@ export async function getCustomerDetailAction(id: string): Promise<ActionResult<
         name: customer.name,
         email: customer.email,
         phone: customer.phone,
-        company: customer.company,
         address: customer.address,
-        status: customer.status,
-        source: customer.source,
-        tags: customer.tags,
         _count: {
-          leads: customer.leads.length,
           notes: customer.notes.length,
         },
         createdAt: customer.createdAt.toISOString(),

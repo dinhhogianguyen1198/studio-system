@@ -23,3 +23,5 @@ export interface PaginationMeta {
   total: number
   totalPages: number
 }
+
+export type PaginatedResult<T> = PaginatedResponse<T>

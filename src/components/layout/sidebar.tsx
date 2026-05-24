@@ -13,7 +13,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { PanelLeftClose, PanelLeftOpen, Layers } from "lucide-react"
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import Image from "next/image"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
 
 interface SidebarProps {
@@ -21,7 +22,7 @@ interface SidebarProps {
   appName?: string
 }
 
-export function Sidebar({ role, appName = "Studio" }: SidebarProps) {
+export function Sidebar({ role, appName = "Lu Production" }: SidebarProps) {
   const { collapsed, mounted, toggle } = useSidebar()
   const pathname = usePathname()
 
@@ -45,9 +46,13 @@ export function Sidebar({ role, appName = "Studio" }: SidebarProps) {
           isCollapsed ? "justify-center" : "gap-2.5 px-3"
         )}
       >
-        <div className="flex items-center justify-center w-7 h-7 rounded-md bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
-          <Layers className="w-3.5 h-3.5" />
-        </div>
+        <Image
+          src="/logo.png"
+          alt="StudioOS"
+          width={28}
+          height={28}
+          className="shrink-0 object-contain brightness-0"
+        />
         {!isCollapsed && (
           <span className="font-semibold text-sm tracking-tight text-sidebar-foreground truncate">
             {appName}

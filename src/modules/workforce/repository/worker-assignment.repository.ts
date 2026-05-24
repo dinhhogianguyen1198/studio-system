@@ -15,6 +15,26 @@ export const workerAssignmentRepository = {
     })
   },
 
+  // Fix #2: Batch load assignments cho nhiều items cùng lúc — 1 query thay vì N
+  async findByOrderItemIds(
+    orderItemIds: string[],
+  ): Promise<Map<string, OrderItemWorkerDetail[]>> {
+    if (orderItemIds.length === 0) return new Map()
+    const rows = await db.orderItemWorker.findMany({
+      where: { orderItemId: { in: orderItemIds } },
+      select: orderItemWorkerSelect,
+      orderBy: { createdAt: "asc" },
+    })
+    // Group by orderItemId
+    const map = new Map<string, OrderItemWorkerDetail[]>()
+    for (const row of rows) {
+      const list = map.get(row.orderItemId) ?? []
+      list.push(row)
+      map.set(row.orderItemId, list)
+    }
+    return map
+  },
+
   async findById(id: string): Promise<OrderItemWorkerDetail | null> {
     return db.orderItemWorker.findUnique({
       where: { id },
@@ -95,9 +115,25 @@ export const workerAssignmentRepository = {
     await db.orderItemWorker.delete({ where: { id } })
   },
 
+  async markAsPaid(id: string, paidAt: Date): Promise<OrderItemWorkerDetail> {
+    return db.orderItemWorker.update({
+      where: { id },
+      data: { paidAt },
+      select: orderItemWorkerSelect,
+    })
+  },
+
+  async markMultiplePaid(ids: string[], paidAt: Date): Promise<{ count: number }> {
+    const result = await db.orderItemWorker.updateMany({
+      where: { id: { in: ids }, paidAt: null },
+      data: { paidAt },
+    })
+    return { count: result.count }
+  },
+
   async getServiceCostSummary(orderItemId: string): Promise<{ totalCost: number; workerCount: number }> {
     const result = await db.orderItemWorker.aggregate({
-      where: { orderItemId, status: { not: "CANCELLED" } },
+      where: { orderItemId },
       _sum: { totalCost: true },
       _count: { id: true },
     })
@@ -109,10 +145,7 @@ export const workerAssignmentRepository = {
 
   async getOrderCostSummary(orderId: string): Promise<number> {
     const result = await db.orderItemWorker.aggregate({
-      where: {
-        orderItem: { orderId },
-        status: { not: "CANCELLED" },
-      },
+      where: { orderItem: { orderId } },
       _sum: { totalCost: true },
     })
     return Number(result._sum.totalCost ?? 0)

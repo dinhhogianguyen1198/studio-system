@@ -10,13 +10,7 @@ export const createCustomerSchema = z.object({
     .regex(/^[0-9+\-\s()]{7,20}$/, "Số điện thoại không hợp lệ")
     .optional()
     .or(z.literal("")),
-  company: z.string().max(200, "Tên công ty tối đa 200 ký tự").optional().or(z.literal("")),
   address: z.string().max(500, "Địa chỉ tối đa 500 ký tự").optional().or(z.literal("")),
-  status: z.enum(["ACTIVE", "INACTIVE", "BLOCKED"]).default("ACTIVE"),
-  source: z
-    .enum(["DIRECT", "REFERRAL", "SOCIAL_MEDIA", "WEBSITE", "EVENT", "OTHER"])
-    .default("DIRECT"),
-  tags: z.string().optional().or(z.literal("")),
 })
 
 export const updateCustomerSchema = createCustomerSchema.partial().extend({
@@ -25,10 +19,6 @@ export const updateCustomerSchema = createCustomerSchema.partial().extend({
 
 export const customerFilterSchema = z.object({
   search: z.string().optional(),
-  status: z.enum(["ACTIVE", "INACTIVE", "BLOCKED"]).optional(),
-  source: z
-    .enum(["DIRECT", "REFERRAL", "SOCIAL_MEDIA", "WEBSITE", "EVENT", "OTHER"])
-    .optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 })

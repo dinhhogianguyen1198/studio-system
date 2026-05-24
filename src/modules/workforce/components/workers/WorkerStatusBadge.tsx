@@ -6,10 +6,7 @@ interface Props {
 
 export function WorkerStatusBadge({ isActive }: Props) {
   return (
-    <Badge
-      variant={isActive ? "default" : "secondary"}
-      className={isActive ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
-    >
+    <Badge variant={isActive ? "success" : "muted"}>
       {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
     </Badge>
   )

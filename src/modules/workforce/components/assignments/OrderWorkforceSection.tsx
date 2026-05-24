@@ -31,7 +31,7 @@ export function OrderWorkforceSection({
   orderStatus,
 }: Props) {
   const isCancelled = orderStatus === "CANCELLED"
-  const activeAssignments = services.flatMap((s) => s.assignments).filter((a) => a.status !== "CANCELLED")
+  const activeAssignments = services.flatMap((s) => s.assignments)
   const totalCost = activeAssignments.reduce((sum, a) => sum + a.totalCost, 0)
   const estimatedProfit = orderRevenue - totalCost
   const profitMargin = orderRevenue > 0 ? (estimatedProfit / orderRevenue) * 100 : 0
@@ -46,13 +46,13 @@ export function OrderWorkforceSection({
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-muted-foreground" />
-          <CardTitle>Ekip phụ trách</CardTitle>
+          <CardTitle>Nhân sự</CardTitle>
         </div>
 
         {hasAnyAssignment && (
           <div className="mt-3 flex items-center gap-6 border-t border-border pt-3 text-sm">
             <div>
-              <p className="text-xs text-muted-foreground">Chi phí ekip</p>
+              <p className="text-xs text-muted-foreground">Chi phí nhân sự</p>
               <p className="font-semibold tabular-nums">{fmt(totalCost)}</p>
             </div>
             <div>
@@ -84,10 +84,8 @@ export function OrderWorkforceSection({
           </p>
         ) : (
           services.map((service) => {
-            const activeCost = service.assignments
-              .filter((a) => a.status !== "CANCELLED")
-              .reduce((sum, a) => sum + a.totalCost, 0)
-            const activeCount = service.assignments.filter((a) => a.status !== "CANCELLED").length
+            const activeCost = service.assignments.reduce((sum, a) => sum + a.totalCost, 0)
+            const activeCount = service.assignments.length
 
             return (
               <div key={service.itemId} className="space-y-2">
@@ -115,7 +113,7 @@ export function OrderWorkforceSection({
                     >
                       <button
                         type="button"
-                        className="flex h-7 flex-shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                        className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
                       >
                         <Plus className="h-3 w-3" />
                         Phân công
@@ -131,7 +129,7 @@ export function OrderWorkforceSection({
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="grid grid-cols-3 gap-3">
                     {service.assignments.map((a) => (
                       <WorkerAssignmentCard key={a.id} assignment={a} orderCancelled={isCancelled} />
                     ))}

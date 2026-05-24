@@ -57,8 +57,12 @@ export const assignWorkerSchema = z.object({
 
 export const updateAssignmentStatusSchema = z.object({
   id: z.string().cuid(),
-  status: z.enum(["ASSIGNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
+  status: z.enum(["IN_PROGRESS", "COMPLETED"]),
   notes: z.string().max(500).optional().nullable(),
+})
+
+export const markAsPaidSchema = z.object({
+  id: z.string().cuid(),
 })
 
 export type CreateWorkerInput = z.infer<typeof createWorkerSchema>
@@ -68,3 +72,4 @@ export type UpdateJobTypeInput = z.infer<typeof updateJobTypeSchema>
 export type UpsertWorkerRateInput = z.infer<typeof upsertWorkerRateSchema>
 export type AssignWorkerInput = z.infer<typeof assignWorkerSchema>
 export type UpdateAssignmentStatusInput = z.infer<typeof updateAssignmentStatusSchema>
+export type MarkAsPaidInput = z.infer<typeof markAsPaidSchema>

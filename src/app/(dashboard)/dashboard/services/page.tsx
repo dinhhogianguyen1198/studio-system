@@ -3,14 +3,10 @@ import { serviceDefinitionService } from "@/modules/services/service/service-def
 import { serializeServiceDefinitionSummary } from "@/modules/services/types/services.types"
 import { ServiceDefinitionTable } from "@/modules/services/components/definitions/ServiceDefinitionTable"
 import { CreateServiceDefinitionDialog } from "@/modules/services/components/definitions/CreateServiceDefinitionDialog"
-import { workflowTemplateService } from "@/modules/workflow/service/workflow-template.service"
 
 export default async function ServicesPage() {
   await requirePermission("service_catalog", "read")
-  const [{ data: raw }, workflowTemplates] = await Promise.all([
-    serviceDefinitionService.findMany({ page: 1, pageSize: 100 }),
-    workflowTemplateService.findMany(),
-  ])
+  const { data: raw } = await serviceDefinitionService.findMany({ page: 1, pageSize: 100 })
   const services = raw.map(serializeServiceDefinitionSummary)
 
   return (
@@ -20,10 +16,10 @@ export default async function ServicesPage() {
           <h1 className="text-2xl font-bold">Dịch vụ</h1>
           <p className="text-muted-foreground text-sm">Quản lý danh sách dịch vụ của studio</p>
         </div>
-        <CreateServiceDefinitionDialog workflowTemplates={workflowTemplates} />
+        <CreateServiceDefinitionDialog />
       </div>
 
-      <ServiceDefinitionTable services={services} workflowTemplates={workflowTemplates} />
+      <ServiceDefinitionTable services={services} />
     </div>
   )
 }

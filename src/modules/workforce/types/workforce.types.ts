@@ -3,10 +3,8 @@ import type { Prisma } from "@prisma/client"
 // ── Status constants (const object + type union pattern) ──────────────────────
 
 export const WorkerAssignmentStatus = {
-  ASSIGNED: "ASSIGNED",
   IN_PROGRESS: "IN_PROGRESS",
   COMPLETED: "COMPLETED",
-  CANCELLED: "CANCELLED",
 } as const
 export type WorkerAssignmentStatus = (typeof WorkerAssignmentStatus)[keyof typeof WorkerAssignmentStatus]
 
@@ -106,6 +104,13 @@ export const orderItemWorkerSelect = {
   worker: { select: { id: true, name: true, avatarUrl: true } },
   jobType: { select: { id: true, name: true, color: true } },
   assignedBy: { select: { id: true, name: true } },
+  orderItem: {
+    select: {
+      id: true,
+      name: true,
+      order: { select: { id: true, orderNumber: true } },
+    },
+  },
 } satisfies Prisma.OrderItemWorkerSelect
 
 // ── Inferred DTO types ────────────────────────────────────────────────────────
@@ -197,6 +202,19 @@ export interface UpdateAssignmentStatusDto {
   notes?: string | null
 }
 
+// ── Payroll summary per worker ────────────────────────────────────────────────
+// Defined after SerializedOrderItemWorkerDetail — forward-declared here, used below.
+
+export interface WorkerPayrollSummary {
+  workerId: string
+  workerName: string
+  workerAvatarUrl: string | null
+  unpaidCount: number
+  unpaidAmount: number
+  assignmentIds: string[]
+  assignments: SerializedOrderItemWorkerDetail[]
+}
+
 // ── Cost summary types ────────────────────────────────────────────────────────
 
 export interface ServiceCostSummary {
@@ -219,15 +237,48 @@ export interface OrderCostSummary {
   services: ServiceCostSummary[]
 }
 
-// ── Serialized types (Decimal → number) for Client Components ─────────────────
+// ── Serialized types (Decimal → number, Date → string) for Client Components ──
+
+export type SerializedWorkerRate = Omit<
+  WorkerDetail["rates"][number],
+  "amount" | "effectiveFrom" | "effectiveTo"
+> & {
+  amount: number
+  effectiveFrom: string
+  effectiveTo: string | null
+}
+
+export type SerializedWorkerDetail = Omit<WorkerDetail, "createdAt" | "updatedAt" | "rates"> & {
+  createdAt: string
+  updatedAt: string
+  rates: SerializedWorkerRate[]
+}
+
+export function serializeWorkerDetail(worker: WorkerDetail): SerializedWorkerDetail {
+  return {
+    ...worker,
+    createdAt: worker.createdAt.toISOString(),
+    updatedAt: worker.updatedAt.toISOString(),
+    rates: worker.rates.map((r) => ({
+      ...r,
+      amount: Number(r.amount),
+      effectiveFrom: r.effectiveFrom.toISOString(),
+      effectiveTo: r.effectiveTo?.toISOString() ?? null,
+    })),
+  }
+}
 
 export type SerializedOrderItemWorkerDetail = Omit<
   OrderItemWorkerDetail,
-  "rateAmountSnapshot" | "quantity" | "totalCost"
+  "rateAmountSnapshot" | "quantity" | "totalCost" | "paidAt" | "startedAt" | "completedAt" | "createdAt"
 > & {
   rateAmountSnapshot: number
   quantity: number
   totalCost: number
+  paidAt: string | null
+  startedAt: string | null
+  completedAt: string | null
+  createdAt: string
 }
 
 export function serializeOrderItemWorker(a: OrderItemWorkerDetail): SerializedOrderItemWorkerDetail {
@@ -236,6 +287,10 @@ export function serializeOrderItemWorker(a: OrderItemWorkerDetail): SerializedOr
     rateAmountSnapshot: Number(a.rateAmountSnapshot),
     quantity: Number(a.quantity),
     totalCost: Number(a.totalCost),
+    paidAt: a.paidAt?.toISOString() ?? null,
+    startedAt: a.startedAt?.toISOString() ?? null,
+    completedAt: a.completedAt?.toISOString() ?? null,
+    createdAt: a.createdAt.toISOString(),
   }
 }
 
@@ -248,15 +303,11 @@ export const RATE_TYPE_LABELS: Record<RateType, string> = {
 }
 
 export const ASSIGNMENT_STATUS_LABELS: Record<WorkerAssignmentStatus, string> = {
-  ASSIGNED: "Đã phân công",
   IN_PROGRESS: "Đang thực hiện",
   COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
 }
 
 export const ASSIGNMENT_STATUS_COLORS: Record<WorkerAssignmentStatus, string> = {
-  ASSIGNED: "bg-blue-100 text-blue-800",
   IN_PROGRESS: "bg-yellow-100 text-yellow-800",
   COMPLETED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-gray-100 text-gray-600",
 }
