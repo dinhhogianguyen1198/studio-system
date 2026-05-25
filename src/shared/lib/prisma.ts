@@ -1,4 +1,5 @@
 import "server-only"
+import { Pool } from "pg"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
 
@@ -12,7 +13,8 @@ function createPrismaClient(): PrismaClient {
     throw new Error("DATABASE_URL chưa được cấu hình trong .env")
   }
 
-  const adapter = new PrismaPg({ connectionString })
+  const pool = new Pool({ connectionString, max: 10 })
+  const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
     adapter,
@@ -25,6 +27,4 @@ function createPrismaClient(): PrismaClient {
 
 export const db = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db
-}
+globalForPrisma.prisma = db
