@@ -70,6 +70,8 @@ export async function loginAction(
     metadata: { email: parsed.data.email },
     ...meta,
   })
+
+  return { success: true, data: undefined }
 }
 
 export async function registerAction(
