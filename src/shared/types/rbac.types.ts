@@ -42,10 +42,6 @@ export interface RoleWithPermissions {
 
 // ─── Single-role permission check (session primary role) ─────────────────────
 
-/**
- * Kiểm tra xem một role có quyền thực hiện action trên resource không.
- * "manage" trên một resource = toàn quyền trên resource đó.
- */
 export function hasPermission(
   role: RoleWithPermissions,
   resource: Resource,
@@ -56,5 +52,21 @@ export function hasPermission(
       (rp.permission.resource === resource && rp.permission.action === action) ||
       (rp.permission.resource === resource && rp.permission.action === "manage")
   )
+}
+
+// ─── Multi-role helpers ───────────────────────────────────────────────────────
+
+export function hasAnyRole(
+  roles: RoleWithPermissions[],
+  roleNames: string[]
+): boolean {
+  return roles.some((role) => roleNames.includes(role.name))
+}
+
+export function hasAllRoles(
+  roles: RoleWithPermissions[],
+  roleNames: string[]
+): boolean {
+  return roleNames.every((name) => roles.some((role) => role.name === name))
 }
 
