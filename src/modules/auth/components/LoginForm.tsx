@@ -1,7 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useActionState, useState } from "react"
 import { loginAction } from "../actions/auth.actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,16 +12,9 @@ const initialState: ActionResult<void> = {
 }
 
 export function LoginForm() {
-  const router = useRouter()
   const [state, formAction, isPending] = useActionState(loginAction, initialState)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
-  useEffect(() => {
-    if (state.success) {
-      router.push("/dashboard")
-    }
-  }, [state.success, router])
 
   const fieldErrors = !state.success ? state.fieldErrors : undefined
 

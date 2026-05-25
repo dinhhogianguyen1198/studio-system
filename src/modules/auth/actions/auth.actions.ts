@@ -39,31 +39,37 @@ export async function loginAction(
     }
   }
 
+  const meta = await getRequestMeta()
+
   try {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirect: false,
+      redirectTo: "/dashboard",
     })
-
-    const meta = await getRequestMeta()
-    await writeAuditLog({
-      action: "login",
-      resource: "auth",
-      metadata: { email: parsed.data.email },
-      ...meta,
-    })
-
-    return { success: true, data: undefined }
   } catch (error) {
     if (error instanceof AuthError) {
+      await writeAuditLog({
+        action: "login_failed",
+        resource: "auth",
+        metadata: { email: parsed.data.email },
+        ...meta,
+      })
       return {
         success: false,
         error: "Email hoặc mật khẩu không đúng",
       }
     }
-    return { success: false, error: "Đã xảy ra lỗi. Vui lòng thử lại" }
+    // Re-throw NEXT_REDIRECT và các lỗi nội bộ khác — không được catch ở đây
+    throw error
   }
+
+  await writeAuditLog({
+    action: "login",
+    resource: "auth",
+    metadata: { email: parsed.data.email },
+    ...meta,
+  })
 }
 
 export async function registerAction(
