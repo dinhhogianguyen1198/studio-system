@@ -1,8 +1,6 @@
 import "server-only"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { db } from "@/shared/lib/prisma"
 import { authService } from "@/modules/auth/service/auth.service"
 import { loginSchema } from "@/modules/auth/schemas/auth.schema"
 import { authConfig } from "./auth.config"
@@ -13,7 +11,6 @@ import "@/shared/types/session.types"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(db),
   providers: [
     Credentials({
       credentials: {
