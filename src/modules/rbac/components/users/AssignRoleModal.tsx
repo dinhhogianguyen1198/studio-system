@@ -6,11 +6,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Select } from "@/components/ui/select"
 import { X } from "lucide-react"
 import {
   assignRoleToUserAction,
@@ -125,11 +127,10 @@ export function AssignRoleModal({
               </p>
             ) : (
               <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <select
+                <div className="flex-1">
+                  <Select
                     value={selectedRoleId}
                     onChange={(e) => setSelectedRoleId(e.target.value)}
-                    className="flex h-8 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-sm transition-colors outline-none focus-visible:border-ring/60 focus-visible:ring-2 focus-visible:ring-ring/20"
                   >
                     <option value="">Chọn vai trò...</option>
                     {availableRoles.map((role) => (
@@ -137,14 +138,14 @@ export function AssignRoleModal({
                         {role.name}{role.isSystem ? " (hệ thống)" : ""}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <Button
                   type="button"
                   onClick={handleAssign}
                   disabled={!selectedRoleId || isPending}
                 >
-                  Gán
+                  {isPending ? "Đang gán..." : "Gán"}
                 </Button>
               </div>
             )}
@@ -155,6 +156,12 @@ export function AssignRoleModal({
             chính trong session hiện tại.
           </p>
         </div>
+
+        <DialogFooter className="pt-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Đóng
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

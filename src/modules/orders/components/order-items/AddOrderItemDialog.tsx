@@ -4,6 +4,7 @@ import { useState, useActionState, useEffect } from "react"
 import { toast } from "sonner"
 import { Plus, X, PackageX, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { SerializedServiceDefinitionSummary } from "@/modules/services/types/services.types"
 import { addOrderItemAction } from "../../actions/order-item.actions"
@@ -84,18 +85,19 @@ export function AddOrderItemDialog({ orderId, services }: Props) {
   }
 
   const durationDays = selected?.defaultDurationDays ?? null
-  const isDeadlineAutoCalc = !!eventDate && durationDays != null
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="outline"
         onClick={() => setOpen(true)}
-        className="flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+        className="h-7 gap-1.5 px-2.5 text-xs shrink-0"
       >
         <Plus className="h-3.5 w-3.5" />
         Thêm dịch vụ
-      </button>
+      </Button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -241,13 +243,8 @@ export function AddOrderItemDialog({ orderId, services }: Props) {
                           name="deadline"
                           type="date"
                           value={deadline}
-                          readOnly={isDeadlineAutoCalc}
                           onChange={(e) => setDeadline(e.target.value)}
-                          className={cn(
-                            fieldClass,
-                            "cursor-pointer",
-                            isDeadlineAutoCalc && "bg-muted text-muted-foreground",
-                          )}
+                          className={cn(fieldClass, "cursor-pointer")}
                         />
                       </div>
                     </div>

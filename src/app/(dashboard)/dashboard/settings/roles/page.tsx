@@ -4,24 +4,15 @@ import { rbacRoleService } from "@/modules/rbac/service/rbac-role.service"
 import { rbacPermissionService } from "@/modules/rbac/service/rbac-permission.service"
 import { roleFilterSchema } from "@/modules/rbac/schemas/role.schema"
 import { RoleTable } from "@/modules/rbac/components/roles/RoleTable"
+import { RoleFilters } from "@/modules/rbac/components/roles/RoleFilters"
 import { Pagination } from "@/modules/rbac/components/shared/Pagination"
 import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Shield } from "lucide-react"
+import { TableSkeleton } from "@/modules/rbac/components/shared/TableSkeleton"
 import CreateRoleButton from "./_components/CreateRoleButton"
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[]>>
-}
-
-function TableSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-11 w-full rounded-md" />
-      ))}
-    </div>
-  )
 }
 
 async function RoleManagementContent({
@@ -54,6 +45,10 @@ async function RoleManagementContent({
 
   return (
     <>
+      <RoleFilters
+        defaultSearch={typeof searchParams.search === "string" ? searchParams.search : ""}
+        defaultIncludeDeleted={searchParams.includeDeleted === "true"}
+      />
       <RoleTable roles={serializedRoles} allPermissions={allPermissions} />
       <Pagination meta={result.meta} />
     </>

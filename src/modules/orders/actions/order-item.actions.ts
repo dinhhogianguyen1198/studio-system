@@ -7,8 +7,10 @@ import { toActionError } from "@/shared/lib/action-error"
 import type { ActionResult } from "@/shared/types/api.types"
 import { db } from "@/shared/lib/prisma"
 import { orderItemService } from "../service/order-item.service"
+import { orderService } from "../service/order.service"
 import { addOrderItemSchema, updateOrderItemSchema, recordPaymentSchema, updatePaymentSchema, createOrderFeedbackSchema, createIncidentalCostSchema, updateIncidentalCostSchema } from "../schemas/orders.schema"
 import { orderRepository } from "../repository/order.repository"
+import type { PaymentType, PaymentMethod } from "@prisma/client"
 
 const ERROR_MESSAGES: Record<string, string> = {
   ORDER_ITEM_NOT_FOUND: "Dịch vụ không tồn tại trong đơn hàng",
@@ -145,9 +147,9 @@ export async function updatePaymentAction(
     await db.orderPayment.update({
       where: { id: paymentId },
       data: {
-        type: parsed.data.type as never,
+        type: parsed.data.type as PaymentType,
         amount: parsed.data.amount,
-        method: parsed.data.method as never,
+        method: parsed.data.method as PaymentMethod,
         reference: parsed.data.reference,
         note: parsed.data.note,
         paidAt: parsed.data.paidAt,
@@ -337,7 +339,7 @@ export async function recordPaymentAction(
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }
 
   try {
-    await orderItemService.recordPayment({ ...parsed.data, recordedById: session.user.id })
+    await orderService.recordPayment({ ...parsed.data, recordedById: session.user.id })
     await writeAuditLog({
       userId: session.user.id,
       action: "CREATE",

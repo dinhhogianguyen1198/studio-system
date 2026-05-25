@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client"
+import type { PaymentMethod } from "@prisma/client"
 import { expenseRepository } from "../repository/expense.repository"
 import type {
   CreateExpenseInput,
@@ -27,7 +28,7 @@ export const expenseService = {
       category: { connect: { id: data.categoryId } },
       ...(data.orderId && { order: { connect: { id: data.orderId } } }),
       expenseDate: new Date(data.expenseDate),
-      paymentMethod: data.paymentMethod as Prisma.EnumPaymentMethodFilter["equals"],
+      paymentMethod: data.paymentMethod as PaymentMethod,
       reference: data.reference,
       notes: data.notes,
       createdBy: { connect: { id: createdById } },
@@ -50,7 +51,7 @@ export const expenseService = {
       }),
       ...(data.expenseDate && { expenseDate: new Date(data.expenseDate) }),
       ...(data.paymentMethod !== undefined && {
-        paymentMethod: data.paymentMethod as Prisma.EnumPaymentMethodFilter["equals"],
+        paymentMethod: data.paymentMethod as PaymentMethod,
       }),
       ...(data.reference !== undefined && { reference: data.reference }),
       ...(data.notes !== undefined && { notes: data.notes }),
@@ -92,7 +93,7 @@ export const expenseService = {
 
     return expenseRepository.update(id, {
       status: "PAID",
-      paymentMethod: paymentMethod as Prisma.EnumPaymentMethodFilter["equals"],
+      paymentMethod: paymentMethod as PaymentMethod,
       ...(reference && { reference }),
     })
   },

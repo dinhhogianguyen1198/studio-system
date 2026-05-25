@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/shared/types/api.types"
 import type { OrderManagementUnitSummary } from "@/modules/orders/types/order-management-unit.types"
 import { updateOrderAction } from "@/modules/orders/actions/order.actions"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Props {
@@ -71,19 +72,21 @@ export function OrderDetailInfoForm({ orderId, defaultValues, managementUnits }:
             Thông tin đơn hàng
           </CardTitle>
           {!isEditing && (
-            <button
+            <Button
               type="button"
+              size="sm"
+              variant="outline"
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="h-7 gap-1.5 px-2.5 text-xs"
             >
-              <Pencil className="h-3 w-3" />
+              <Pencil className="h-3.5 w-3.5" />
               Chỉnh sửa
-            </button>
+            </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4">
+      <CardContent className="pt-3 pb-4">
         {!isEditing ? (
           <div className="space-y-3 text-sm">
             <div>
@@ -174,27 +177,26 @@ export function OrderDetailInfoForm({ orderId, defaultValues, managementUnits }:
             </div>
 
             <div className="flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="lg"
                 onClick={handleCancel}
                 disabled={isPending}
-                className="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground transition-all hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 gap-1.5"
               >
                 <X className="h-3.5 w-3.5" />
                 Hủy
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                size="lg"
                 disabled={isPending}
-                className={cn(
-                  "flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground",
-                  "transition-all hover:bg-primary/90",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
+                className="flex-1 gap-1.5"
               >
                 <Save className="h-3.5 w-3.5" />
                 {isPending ? "Đang lưu..." : "Lưu"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

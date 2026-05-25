@@ -233,7 +233,8 @@ export const dashboardRepository = {
     })
 
     return items.map((item) => ({
-      id: item.order.id,
+      id: item.id,
+      orderId: item.order.id,
       orderCode: item.order.orderNumber,
       orderTitle: item.name,
       customerName: item.order.customer?.name ?? item.order.contactName,

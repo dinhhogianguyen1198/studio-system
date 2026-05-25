@@ -56,6 +56,7 @@ export type DeadlineSeverity = "overdue" | "urgent" | "warning" | "normal"
 
 export interface UpcomingDeadline {
   id: string
+  orderId: string
   orderCode: string
   orderTitle: string
   customerName: string | null

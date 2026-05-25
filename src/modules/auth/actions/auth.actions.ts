@@ -3,9 +3,11 @@
 import { encode } from "@auth/core/jwt"
 import { signOut } from "@/lib/auth"
 import { authService } from "../service/auth.service"
-import { loginSchema, registerSchema, changePasswordSchema } from "../schemas/auth.schema"
+import { loginSchema, changePasswordSchema } from "../schemas/auth.schema"
 import { writeAuditLog } from "@/shared/lib/audit"
 import { requireSession } from "@/shared/lib/auth-utils"
+import { checkRateLimit } from "@/shared/lib/rate-limit"
+import { env } from "@/config/env"
 import { headers, cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import type { ActionResult } from "@/shared/types/api.types"
@@ -40,9 +42,17 @@ export async function loginAction(
   }
 
   const meta = await getRequestMeta()
+  const ip = meta.ipAddress ?? "unknown"
 
-  // Validate credentials trực tiếp — không dùng signIn() để tránh bug
-  // next-auth 5.0.0-beta.31 + Next.js 16 gọi internal Server Action "x"
+  // Rate limit: 10 lần / 15 phút / IP để chống brute-force
+  const rl = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
+  if (!rl.allowed) {
+    return {
+      success: false,
+      error: "Quá nhiều lần thử đăng nhập. Vui lòng thử lại sau vài phút.",
+    }
+  }
+
   let user
   try {
     user = await authService.validateCredentials(
@@ -51,7 +61,7 @@ export async function loginAction(
     )
   } catch {
     await writeAuditLog({
-      action: "login_failed",
+      action: "LOGIN_FAILED",
       resource: "auth",
       metadata: { email: parsed.data.email },
       ...meta,
@@ -60,7 +70,7 @@ export async function loginAction(
   }
 
   // Tạo JWT token theo đúng format Auth.js đọc trong session callback
-  const isSecure = process.env.AUTH_URL?.startsWith("https") ?? false
+  const isSecure = env.AUTH_URL.startsWith("https")
   const cookieName = isSecure
     ? "__Secure-authjs.session-token"
     : "authjs.session-token"
@@ -76,7 +86,7 @@ export async function loginAction(
       roleName: user.role.name,
       // permissions không lưu trong JWT — fetch từ DB trong session callback
     },
-    secret: process.env.AUTH_SECRET!,
+    secret: env.AUTH_SECRET,
     maxAge: SESSION_MAX_AGE,
     salt: cookieName,
   })
@@ -93,7 +103,7 @@ export async function loginAction(
   })
 
   await writeAuditLog({
-    action: "login",
+    action: "LOGIN",
     resource: "auth",
     metadata: { email: parsed.data.email },
     ...meta,
@@ -105,41 +115,11 @@ export async function loginAction(
 
 export async function registerAction(
   _prevState: ActionResult<void>,
-  formData: FormData
+  _formData: FormData
 ): Promise<ActionResult<void>> {
-  const raw = Object.fromEntries(formData)
-  const parsed = registerSchema.safeParse(raw)
-
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: "Dữ liệu không hợp lệ",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
-    }
-  }
-
-  try {
-    await authService.registerUser({
-      email: parsed.data.email,
-      password: parsed.data.password,
-      name: parsed.data.name,
-    })
-
-    const meta = await getRequestMeta()
-    await writeAuditLog({
-      action: "register",
-      resource: "auth",
-      metadata: { email: parsed.data.email },
-      ...meta,
-    })
-
-    return { success: true, data: undefined }
-  } catch (err: unknown) {
-    const authErr = err as { message?: string }
-    return {
-      success: false,
-      error: authErr.message ?? "Đăng ký thất bại. Vui lòng thử lại",
-    }
+  return {
+    success: false,
+    error: "Tự đăng ký tài khoản không được phép. Vui lòng liên hệ quản trị viên.",
   }
 }
 
@@ -169,7 +149,7 @@ export async function changePasswordAction(
 
     await writeAuditLog({
       userId: session.user.id,
-      action: "change_password",
+      action: "CHANGE_PASSWORD",
       resource: "auth",
     })
 

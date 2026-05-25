@@ -2,7 +2,7 @@
 
 import { useState, useActionState, useEffect, useTransition } from "react"
 import { toast } from "sonner"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -72,8 +72,8 @@ function AddIncidentalCostDialog({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="h-7 gap-1 px-2 text-xs">
-          <Plus className="h-3 w-3" />
+        <Button size="sm" variant="outline" className="h-7 gap-1.5 px-2.5 text-xs">
+          <Plus className="h-3.5 w-3.5" />
           Thêm
         </Button>
       </DialogTrigger>
@@ -170,8 +170,8 @@ function EditIncidentalCostDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground">
-          <Pencil className="h-3 w-3" />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <Pencil className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -251,8 +251,8 @@ function DeleteIncidentalCostButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-3 w-3" />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
@@ -280,12 +280,13 @@ export function IncidentalCostsCard({ orderId, costs }: Props) {
 
   return (
     <Card>
-      <CardHeader className="border-b py-3">
+      <CardHeader className="border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm">
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="size-4 text-muted-foreground" />
             Chi phí phát sinh
             {costs.length > 0 && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
+              <span className="text-xs font-normal text-muted-foreground">
                 {fmt(total)} ₫
               </span>
             )}
@@ -293,7 +294,7 @@ export function IncidentalCostsCard({ orderId, costs }: Props) {
           <AddIncidentalCostDialog orderId={orderId} />
         </div>
       </CardHeader>
-      <CardContent className="pb-3 pt-3">
+      <CardContent className="pt-3 pb-4">
         {costs.length === 0 ? (
           <p className="py-2 text-center text-xs text-muted-foreground">
             Chưa có chi phí phát sinh.

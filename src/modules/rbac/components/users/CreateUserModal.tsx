@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 import { createUserAction } from "@/modules/rbac/actions/rbac-user.actions"
 import type { RoleSummary } from "@/modules/rbac/types/rbac-management.types"
 
@@ -105,20 +106,17 @@ export function CreateUserModal({
 
           <div className="space-y-1.5">
             <Label htmlFor="new-user-role">Vai trò</Label>
-            <div className="relative">
-              <select
-                id="new-user-role"
-                value={roleId}
-                onChange={(e) => setRoleId(e.target.value)}
-                className="flex h-8 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-sm transition-colors outline-none focus-visible:border-ring/60 focus-visible:ring-2 focus-visible:ring-ring/20"
-              >
-                {allRoles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}{role.isSystem ? " (hệ thống)" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="new-user-role"
+              value={roleId}
+              onChange={(e) => setRoleId(e.target.value)}
+            >
+              {allRoles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}{role.isSystem ? " (hệ thống)" : ""}
+                </option>
+              ))}
+            </Select>
           </div>
 
           {!state.success && state.error && (

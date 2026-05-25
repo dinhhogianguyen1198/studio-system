@@ -1,5 +1,3 @@
-import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
 import { orderItemRepository } from "../repository/order-item.repository"
 import { orderRepository } from "../repository/order.repository"
 import { orderService } from "./order.service"
@@ -20,6 +18,7 @@ function rethrowNotFound(err: unknown, message: string): never {
 
 export const orderItemService = {
   async add(data: AddOrderItemDto): Promise<OrderItemSummary> {
+    const { db } = await import("@/shared/lib/prisma")
     const definition = await db.serviceDefinition.findUnique({
       where: { id: data.serviceDefinitionId },
       select: { name: true },
@@ -33,15 +32,11 @@ export const orderItemService = {
     return item
   },
 
-  // Fix #5: orderId lấy thẳng từ updated (không cần extra SELECT)
-  // Fix: xóa findById() check thừa ở đầu — findUniqueOrThrow bên trong repository đã xử lý
   async update(id: string, data: UpdateOrderItemDto): Promise<OrderItemSummary> {
     try {
       const updated = await orderItemRepository.update(id, data)
-      // orderId đã có sẵn trong updated — không cần query thêm
       await orderRepository.recalculateTotals(updated.orderId)
       await orderService.computeAndUpdateOrderStatus(updated.orderId)
-      // Trả về phần OrderItemSummary (không expose orderId ra ngoài)
       const { orderId: _orderId, ...itemData } = updated
       return itemData as OrderItemSummary
     } catch (err) {
@@ -55,7 +50,6 @@ export const orderItemService = {
     await orderService.computeAndUpdateOrderStatus(orderId)
   },
 
-  // Fix #7: Xóa findById() check thừa — db.orderItem.update() tự throw P2025
   async assignStaff(id: string, assignedToId: string | null): Promise<void> {
     try {
       await orderItemRepository.assignStaff(id, assignedToId)
@@ -64,7 +58,6 @@ export const orderItemService = {
     }
   },
 
-  // Fix #6: Xóa findById() check thừa — db.orderItem.update() tự throw P2025
   async updateDeliveryStatus(
     id: string,
     deliveryStatus: "PENDING" | "DELIVERED",
@@ -76,31 +69,4 @@ export const orderItemService = {
       rethrowNotFound(err, "ORDER_ITEM_NOT_FOUND")
     }
   },
-
-  async recordPayment(data: {
-    orderId: string
-    type: string
-    amount: number
-    method: string
-    reference?: string
-    note?: string
-    paidAt?: Date
-    recordedById: string
-  }): Promise<void> {
-    await db.orderPayment.create({
-      data: {
-        orderId: data.orderId,
-        type: data.type as never,
-        amount: new Prisma.Decimal(data.amount),
-        method: data.method as never,
-        reference: data.reference,
-        note: data.note,
-        paidAt: data.paidAt ?? new Date(),
-        recordedById: data.recordedById,
-      },
-    })
-    await orderRepository.recalculateTotals(data.orderId)
-    await orderService.computeAndUpdateOrderStatus(data.orderId)
-  },
 }
-

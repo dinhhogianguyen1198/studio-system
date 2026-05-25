@@ -9,7 +9,7 @@ import { rbacUserService } from "../service/rbac-user.service"
 import {
   createUserSchema,
   updateUserSchema,
-  assignRoleSchema,
+  changePasswordSchema,
 } from "../schemas/user-management.schema"
 import { RBAC_ERROR_MESSAGES } from "../types/rbac-management.types"
 import type { ActionResult } from "@/shared/types/api.types"
@@ -115,6 +115,48 @@ export async function updateUserAction(
   }
 }
 
+// ─── Change password ──────────────────────────────────────────────────────────
+
+export async function changePasswordAction(
+  userId: string,
+  _prevState: ActionResult<void>,
+  formData: FormData
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("users", "update")
+
+  const raw = Object.fromEntries(formData)
+  const parsed = changePasswordSchema.safeParse(raw)
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ",
+    }
+  }
+
+  try {
+    await rbacUserService.changePassword(userId, parsed.data, session.user.id)
+    const meta = await getRequestMeta()
+
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "users",
+      resourceId: userId,
+      metadata: { action: "CHANGE_PASSWORD" },
+      ...meta,
+    })
+
+    revalidatePath("/dashboard/settings/users")
+
+    return { success: true, data: undefined }
+  } catch (err) {
+    return {
+      success: false,
+      error: toRbacError(err, "Đặt lại mật khẩu thất bại"),
+    }
+  }
+}
+
 // ─── Delete user ──────────────────────────────────────────────────────────────
 
 export async function deleteUserAction(
@@ -145,77 +187,3 @@ export async function deleteUserAction(
   }
 }
 
-// ─── Assign / revoke role ─────────────────────────────────────────────────────
-
-export async function assignRoleToUserAction(
-  userId: string,
-  _prevState: ActionResult<void>,
-  formData: FormData
-): Promise<ActionResult<void>> {
-  const session = await requirePermission("users", "update")
-
-  const parsed = assignRoleSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ",
-    }
-  }
-
-  try {
-    await rbacUserService.assignRole(
-      userId,
-      parsed.data.roleId,
-      session.user.id
-    )
-    const meta = await getRequestMeta()
-
-    await writeAuditLog({
-      userId: session.user.id,
-      action: "UPDATE",
-      resource: "users",
-      resourceId: userId,
-      metadata: { action: "ASSIGN_ROLE", roleId: parsed.data.roleId },
-      ...meta,
-    })
-
-    revalidatePath("/dashboard/settings/users")
-
-    return { success: true, data: undefined }
-  } catch (err) {
-    return {
-      success: false,
-      error: toRbacError(err, "Gán vai trò thất bại"),
-    }
-  }
-}
-
-export async function revokeRoleFromUserAction(
-  userId: string,
-  roleId: string
-): Promise<ActionResult<void>> {
-  const session = await requirePermission("users", "update")
-
-  try {
-    await rbacUserService.revokeRole(userId, roleId, session.user.id)
-    const meta = await getRequestMeta()
-
-    await writeAuditLog({
-      userId: session.user.id,
-      action: "UPDATE",
-      resource: "users",
-      resourceId: userId,
-      metadata: { action: "REVOKE_ROLE", roleId },
-      ...meta,
-    })
-
-    revalidatePath("/dashboard/settings/users")
-
-    return { success: true, data: undefined }
-  } catch (err) {
-    return {
-      success: false,
-      error: toRbacError(err, "Thu hồi vai trò thất bại"),
-    }
-  }
-}

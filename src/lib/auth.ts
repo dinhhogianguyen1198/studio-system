@@ -1,31 +1,14 @@
 import "server-only"
-import { cache } from "react"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { authService } from "@/modules/auth/service/auth.service"
 import { loginSchema } from "@/modules/auth/schemas/auth.schema"
 import { authConfig } from "./auth.config"
-import { db } from "@/shared/lib/prisma"
+import { getCachedRole, emptyRole } from "@/shared/lib/permission-cache"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
 
 // Đảm bảo session types được augment
 import "@/shared/types/session.types"
-
-// Cache per request — dedup khi layout + page cùng gọi auth()
-const getRoleWithPermissions = cache(async (roleId: string): Promise<RoleWithPermissions> => {
-  return db.role.findUniqueOrThrow({
-    where: { id: roleId },
-    select: {
-      id: true,
-      name: true,
-      permissions: {
-        select: {
-          permission: { select: { resource: true, action: true } },
-        },
-      },
-    },
-  }) as Promise<RoleWithPermissions>
-})
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -54,7 +37,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role as RoleWithPermissions,
           }
         } catch {
-          // Trả về null để Auth.js xử lý lỗi credentials
           return null
         }
       },
@@ -69,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const u = user as typeof user & { roleId: string; role: RoleWithPermissions }
         token.roleId = u.roleId
         token.roleName = u.role.name
-        // permissions không lưu trong JWT — fetch từ DB mỗi request để tránh cookie quá lớn
+        // permissions không lưu trong JWT — fetch từ cache/DB trong session callback
       }
       return token
     },
@@ -78,7 +60,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token) {
         session.user.id = token.id
         session.user.roleId = token.roleId
-        session.user.role = await getRoleWithPermissions(token.roleId)
+        // Dùng unstable_cache (5 phút TTL) thay vì per-request cache()
+        // Giảm DB query từ mỗi request xuống còn 1 lần / 5 phút / roleId
+        session.user.role =
+          (await getCachedRole(token.roleId)) ??
+          emptyRole(token.roleId, token.roleName as string)
       }
       return session
     },

@@ -4,7 +4,7 @@ import { useState, useActionState, useEffect, useTransition } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import { Pencil, Trash2 } from "lucide-react"
+import { CreditCard, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -89,8 +89,8 @@ function EditPaymentDialog({ payment, orderId }: { payment: Payment; orderId: st
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground">
-          <Pencil className="h-3 w-3" />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <Pencil className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -179,8 +179,8 @@ function DeletePaymentButton({ payment, orderId }: { payment: Payment; orderId: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-3 w-3" />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
@@ -211,11 +211,14 @@ export function PaymentHistoryCard({ orderId, payments, financial }: Props) {
     <Card>
       <CardHeader className="border-b">
         <div className="flex items-center justify-between">
-          <CardTitle>Thanh toán</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="size-4 text-muted-foreground" />
+            Thanh toán
+          </CardTitle>
           <RecordPaymentDialog orderId={orderId} />
         </div>
       </CardHeader>
-      <CardContent className="pt-4 space-y-3 text-sm">
+      <CardContent className="pt-3 pb-4 space-y-3 text-sm">
         {/* Financial summary */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-muted-foreground">
@@ -225,7 +228,7 @@ export function PaymentHistoryCard({ orderId, payments, financial }: Props) {
           {financial.incidentalCostsTotal > 0 && (
             <div className="flex justify-between text-muted-foreground">
               <span>Chi phí phát sinh</span>
-              <span className="tabular-nums text-destructive">−{fmt(financial.incidentalCostsTotal)}</span>
+              <span className="tabular-nums text-warning-foreground">+{fmt(financial.incidentalCostsTotal)}</span>
             </div>
           )}
           {financial.discountAmount > 0 && (

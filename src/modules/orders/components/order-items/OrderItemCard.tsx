@@ -71,7 +71,7 @@ export function OrderItemCard({ item, orderId }: Props) {
             variant="ghost"
             disabled={isDeliveryPending}
             onClick={handleToggleDelivery}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            className="h-7 w-7 p-0 text-muted-foreground hover:bg-muted hover:text-foreground"
             title={item.deliveryStatus === "DELIVERED" ? "Hoàn tác giao file" : "Đánh dấu đã giao"}
           >
             {item.deliveryStatus === "DELIVERED"
@@ -83,7 +83,7 @@ export function OrderItemCard({ item, orderId }: Props) {
 
           <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive">
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </DialogTrigger>

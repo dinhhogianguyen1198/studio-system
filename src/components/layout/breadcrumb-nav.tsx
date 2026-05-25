@@ -6,18 +6,18 @@ import { ChevronRight, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const SEGMENT_LABELS: Record<string, string> = {
-  dashboard: "Dashboard",
+  dashboard: "Tổng quan",
   booking: "Booking",
   customers: "Khách hàng",
   leads: "Leads",
-  finance: "Finance",
-  production: "Production",
-  admin: "Admin",
-  users: "Users",
-  roles: "Roles",
-  permissions: "Permissions",
-  "audit-logs": "Audit Logs",
-  settings: "Settings",
+  finance: "Tài chính",
+  production: "Sản xuất",
+  admin: "Quản trị",
+  users: "Người dùng",
+  roles: "Vai trò",
+  permissions: "Quyền hạn",
+  "audit-logs": "Nhật ký hệ thống",
+  settings: "Cài đặt",
   services: "Dịch vụ",
   categories: "Danh mục",
   orders: "Đơn hàng",
@@ -27,6 +27,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   workers: "Nhân viên",
   payroll: "Bảng lương",
   "job-types": "Loại công việc",
+  "order-management-units": "Đơn vị đơn hàng",
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

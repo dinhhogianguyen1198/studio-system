@@ -1,4 +1,6 @@
 import { db } from "@/shared/lib/prisma"
+import { Prisma } from "@prisma/client"
+import type { PaymentType, PaymentMethod } from "@prisma/client"
 import { orderRepository } from "../repository/order.repository"
 import type {
   CreateOrderDto,
@@ -7,7 +9,6 @@ import type {
   OrderSummary,
   UpdateOrderDto,
 } from "../types/orders.types"
-import { orderDetailSelect } from "../types/orders.types"
 
 type OrderStatus =
   | "NEW"
@@ -49,6 +50,24 @@ function computeOrderStatus(
   return "NEW"
 }
 
+// Advisory lock key cố định cho việc generate order number (tránh race condition)
+const ORDER_NUMBER_LOCK_KEY = 987654321n
+
+async function generateOrderNumber(): Promise<string> {
+  const year = new Date().getFullYear()
+  return db.$transaction(async (tx) => {
+    // pg_advisory_xact_lock đảm bảo chỉ 1 transaction chạy đoạn này cùng lúc
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(${ORDER_NUMBER_LOCK_KEY})`
+    const last = await tx.order.findFirst({
+      where: { orderNumber: { startsWith: `ORD-${year}-` } },
+      orderBy: { orderNumber: "desc" },
+      select: { orderNumber: true },
+    })
+    const seq = last ? parseInt(last.orderNumber.split("-")[2], 10) + 1 : 1
+    return `ORD-${year}-${String(seq).padStart(4, "0")}`
+  })
+}
+
 export const orderService = {
   async findMany(filters: OrderFilters): Promise<{ data: OrderSummary[]; total: number }> {
     return orderRepository.findMany(filters)
@@ -61,16 +80,14 @@ export const orderService = {
   },
 
   async create(data: CreateOrderDto, createdById: string): Promise<OrderDetail> {
-    const orderNumber = await orderService._generateOrderNumber()
+    const orderNumber = await generateOrderNumber()
     return orderRepository.create(data, createdById, orderNumber)
   },
 
-  // Fix #8: Xóa findById() thừa — db.order.update() tự throw nếu không tìm thấy record
   async update(id: string, data: UpdateOrderDto): Promise<OrderDetail> {
     try {
       return await orderRepository.update(id, data)
     } catch (err: unknown) {
-      // Prisma P2025 = Record not found
       if (
         err &&
         typeof err === "object" &&
@@ -113,18 +130,13 @@ export const orderService = {
     }
   },
 
-  // Fix #1 + #9:
-  // - Option C: Chỉ load orders có ít nhất 1 item (orders không có item luôn là NEW)
-  // - Fix #9: Tính computeOrderStatus() 1 lần duy nhất, dùng Map để tránh double-compute
-  // - Batch updates: group orders theo newStatus → dùng updateMany thay vì N updates riêng lẻ
   async autoUpdateOrderStatuses(): Promise<number> {
     const now = new Date()
 
-    // Chỉ load orders chưa COMPLETED và có ít nhất 1 item
     const orders = await db.order.findMany({
       where: {
         status: { not: "COMPLETED" },
-        items: { some: {} }, // chỉ orders có items
+        items: { some: {} },
       },
       select: {
         id: true,
@@ -137,7 +149,6 @@ export const orderService = {
       },
     })
 
-    // Fix #9: Tính status 1 lần, lưu vào Map
     const statusMap = new Map<string, OrderStatus>()
     for (const o of orders) {
       const newStatus = computeOrderStatus(o.items, o.paidAmount, o.totalAmount, now)
@@ -148,7 +159,6 @@ export const orderService = {
 
     if (statusMap.size === 0) return 0
 
-    // Group by newStatus → dùng updateMany để giảm số lượng queries
     const grouped = new Map<OrderStatus, string[]>()
     for (const [id, status] of statusMap) {
       const ids = grouped.get(status) ?? []
@@ -168,11 +178,29 @@ export const orderService = {
     return statusMap.size
   },
 
-  async _generateOrderNumber(): Promise<string> {
-    const year = new Date().getFullYear()
-    const last = await orderRepository.getLastOrderNumber(year)
-    const seq = last ? parseInt(last.split("-")[2], 10) + 1 : 1
-    return `ORD-${year}-${String(seq).padStart(4, "0")}`
+  async recordPayment(data: {
+    orderId: string
+    type: string
+    amount: number
+    method: string
+    reference?: string
+    note?: string
+    paidAt?: Date
+    recordedById: string
+  }): Promise<void> {
+    await db.orderPayment.create({
+      data: {
+        orderId: data.orderId,
+        type: data.type as PaymentType,
+        amount: new Prisma.Decimal(data.amount),
+        method: data.method as PaymentMethod,
+        reference: data.reference,
+        note: data.note,
+        paidAt: data.paidAt ?? new Date(),
+        recordedById: data.recordedById,
+      },
+    })
+    await orderRepository.recalculateTotals(data.orderId)
+    await orderService.computeAndUpdateOrderStatus(data.orderId)
   },
 }
-

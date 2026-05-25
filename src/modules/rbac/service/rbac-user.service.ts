@@ -9,6 +9,7 @@ import type {
 import type {
   CreateUserInput,
   UpdateUserInput,
+  ChangePasswordInput,
 } from "../schemas/user-management.schema"
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -64,6 +65,18 @@ export const rbacUserService = {
       name: data.name,
       roleId: data.roleId,
     })
+  },
+
+  async changePassword(
+    userId: string,
+    data: ChangePasswordInput,
+    requesterId: string
+  ) {
+    const user = await rbacUserRepository.findById(userId)
+    if (!user) throw new Error("USER_NOT_FOUND" satisfies RbacErrorCode)
+
+    const hashedPassword = await hashPassword(data.newPassword)
+    return rbacUserRepository.updatePassword(userId, hashedPassword)
   },
 
   async deleteUser(id: string, requesterId: string) {

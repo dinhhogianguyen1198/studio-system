@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { BreadcrumbNav } from "@/components/layout/breadcrumb-nav"
 import { MobileSidebar } from "@/components/layout/mobile-sidebar"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, LogOut, Settings, User } from "lucide-react"
+import { LogOut, Settings } from "lucide-react"
 import { signOut } from "next-auth/react"
 import type { SessionUser } from "@/shared/types/session.types"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
@@ -31,7 +32,7 @@ export function Navbar({ user }: NavbarProps) {
     : user.email?.slice(0, 2).toUpperCase() ?? "?"
 
   return (
-    <header className="sticky top-0 z-30 flex items-center h-14 px-4 gap-3 bg-background/90 backdrop-blur-sm border-b border-border/60 supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-30 flex items-center h-14 px-4 gap-3 bg-background/90 backdrop-blur-sm border-b border-border/60 supports-backdrop-filter:bg-background/80">
       {/* Mobile menu trigger — rendered inside MobileSidebar */}
       <MobileSidebar role={user.role as RoleWithPermissions} />
 
@@ -41,17 +42,6 @@ export function Navbar({ user }: NavbarProps) {
 
       {/* Right actions */}
       <div className="flex items-center gap-2 ml-auto">
-        {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground/70 hover:text-foreground"
-          aria-label="Thông báo"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-destructive" />
-        </Button>
-
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -90,16 +80,10 @@ export function Navbar({ user }: NavbarProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href="/dashboard/profile" className="cursor-pointer">
-                <User className="w-4 h-4 mr-2" />
-                Profile
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href="/dashboard/settings" className="cursor-pointer">
+              <Link href="/dashboard/settings" className="cursor-pointer">
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </a>
+                Cài đặt
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -107,7 +91,7 @@ export function Navbar({ user }: NavbarProps) {
               onClick={() => signOut({ callbackUrl: "/login" })}
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Sign out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

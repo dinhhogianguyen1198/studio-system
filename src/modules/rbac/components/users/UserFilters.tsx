@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useCallback, useTransition } from "react"
 import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
 import { Search } from "lucide-react"
 import type { RoleSummary } from "@/modules/rbac/types/rbac-management.types"
 
@@ -50,13 +51,12 @@ export function UserFilters({
         />
       </div>
 
-      <div className="relative w-full sm:w-48">
-        <select
+      <div className="w-full sm:w-48">
+        <Select
           defaultValue={defaultRoleId || "all"}
           onChange={(e) =>
             updateParam("roleId", e.target.value === "all" ? "" : e.target.value)
           }
-          className="flex h-8 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-sm transition-colors outline-none focus-visible:border-ring/60 focus-visible:ring-2 focus-visible:ring-ring/20"
         >
           <option value="all">Tất cả vai trò</option>
           {allRoles.map((role) => (
@@ -64,7 +64,7 @@ export function UserFilters({
               {role.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   )

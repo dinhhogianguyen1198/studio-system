@@ -19,4 +19,11 @@ if (!parsed.success) {
   throw new Error("Cấu hình môi trường không hợp lệ. Kiểm tra file .env")
 }
 
+// AUTH_BYPASS_DEV nghiêm cấm trong production — fail-fast thay vì silent security hole
+if (parsed.data.NODE_ENV === "production" && process.env.AUTH_BYPASS_DEV === "true") {
+  throw new Error(
+    "❌ BẢO MẬT: AUTH_BYPASS_DEV=true không được phép trong production! Xóa biến này khỏi .env production."
+  )
+}
+
 export const env = parsed.data

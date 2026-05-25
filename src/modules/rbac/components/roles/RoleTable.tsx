@@ -29,7 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Shield, Trash2, Edit, RotateCcw } from "lucide-react"
+import { MoreHorizontal, Shield, Trash2, Edit, RotateCcw, ShieldOff } from "lucide-react"
 import {
   deleteRoleAction,
   restoreRoleAction,
@@ -75,11 +75,16 @@ export function RoleTable({ roles, allPermissions }: RoleTableProps) {
 
   if (roles.length === 0) {
     return (
-      <div className="rounded-lg border border-border flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm font-medium">Chưa có vai trò nào</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Tạo vai trò đầu tiên để bắt đầu phân quyền
-        </p>
+      <div className="rounded-lg border border-border flex flex-col items-center justify-center py-16 text-center gap-3">
+        <div className="size-10 rounded-lg bg-muted flex items-center justify-center">
+          <ShieldOff className="size-5 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">Chưa có vai trò nào</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Tạo vai trò đầu tiên để bắt đầu phân quyền
+          </p>
+        </div>
       </div>
     )
   }
@@ -161,7 +166,7 @@ export function RoleTable({ roles, allPermissions }: RoleTableProps) {
                 <TableCell className="px-3 last:pr-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Button variant="ghost" size="icon-sm">
                         <MoreHorizontal className="size-4" />
                         <span className="sr-only">Thao tác</span>
                       </Button>

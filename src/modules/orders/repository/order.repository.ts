@@ -103,7 +103,7 @@ export const orderRepository = {
     const subtotal = items.reduce((sum, i) => sum + Number(i.totalPrice), 0)
     const incidentalTotal = incidentalCosts.reduce((sum, c) => sum + Number(c.amount), 0)
     const discount = Number(order?.discountAmount ?? 0)
-    const totalAmount = Math.max(0, subtotal - incidentalTotal - discount)
+    const totalAmount = Math.max(0, subtotal + incidentalTotal - discount)
     const paidAmount =
       payments.reduce((sum, p) => sum + Number(p.amount), 0) -
       refunds.reduce((sum, r) => sum + Number(r.amount), 0)

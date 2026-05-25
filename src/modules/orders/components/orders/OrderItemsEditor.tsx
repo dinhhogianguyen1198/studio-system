@@ -133,8 +133,6 @@ function calculateDeadline(eventDate: string, durationDays: number | null): stri
 }
 
 function OrderItemCard({ item, onRemove, onUpdate }: OrderItemCardProps) {
-  const isDeadlineAutoCalc = item.eventDate != null && item.defaultDurationDays != null
-
   function handleEventDateChange(value: string) {
     const deadline = value && item.defaultDurationDays != null
       ? calculateDeadline(value, item.defaultDurationDays)
@@ -199,13 +197,8 @@ function OrderItemCard({ item, onRemove, onUpdate }: OrderItemCardProps) {
           <input
             type="date"
             value={item.deadline ? item.deadline.slice(0, 10) : ""}
-            readOnly={isDeadlineAutoCalc}
             onChange={(e) => onUpdate(item._key, { deadline: e.target.value || undefined })}
-            className={cn(
-              fieldInputClass,
-              "cursor-pointer",
-              isDeadlineAutoCalc && "bg-muted text-muted-foreground",
-            )}
+            className={cn(fieldInputClass, "cursor-pointer")}
           />
         </div>
 

@@ -236,6 +236,24 @@ export async function revokePermissionFromRoleAction(
   }
 }
 
+// ─── Get role permission IDs (for AssignPermissionModal initial state) ────────
+
+export async function getRolePermissionIdsAction(
+  roleId: string
+): Promise<ActionResult<string[]>> {
+  await requirePermission("roles", "read")
+
+  try {
+    const permissions = await rbacRoleService.getRolePermissions(roleId)
+    return {
+      success: true,
+      data: permissions.map((rp) => rp.permission.id),
+    }
+  } catch (err) {
+    return { success: false, error: toRbacError(err, "Không thể tải quyền của vai trò") }
+  }
+}
+
 // ─── Replace all permissions (matrix update) ──────────────────────────────────
 
 export async function replaceRolePermissionsAction(

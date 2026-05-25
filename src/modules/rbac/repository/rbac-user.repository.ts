@@ -106,6 +106,14 @@ export const rbacUserRepository = {
     })
   },
 
+  async updatePassword(id: string, hashedPassword: string) {
+    return db.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+      select: { id: true },
+    })
+  },
+
   async delete(id: string) {
     return db.user.delete({ where: { id } })
   },

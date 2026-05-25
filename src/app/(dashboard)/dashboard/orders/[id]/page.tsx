@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
-import { ArrowLeft, AlertTriangle } from "lucide-react"
+import { ArrowLeft, AlertTriangle, ListChecks } from "lucide-react"
 import { requirePermission } from "@/shared/lib/auth-utils"
 import { orderService } from "@/modules/orders/service/order.service"
 import { orderManagementUnitService } from "@/modules/orders/service/order-management-unit.service"
@@ -96,9 +96,12 @@ export default async function OrderDetailPage({ params }: Props) {
         <div className="space-y-4 lg:col-span-2">
           {/* Danh sách sản phẩm */}
           <Card>
-            <CardHeader className="border-b py-3">
+            <CardHeader className="border-b">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Danh sách dịch vụ ({serializedItems.length})</CardTitle>
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle>Danh sách dịch vụ ({serializedItems.length})</CardTitle>
+                </div>
                 <AddOrderItemDialog orderId={order.id} services={serializedServices} />
               </div>
             </CardHeader>

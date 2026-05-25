@@ -7,24 +7,13 @@ import { UserTable } from "@/modules/rbac/components/users/UserTable"
 import { UserFilters } from "@/modules/rbac/components/users/UserFilters"
 import { CreateUserModal } from "@/modules/rbac/components/users/CreateUserModal"
 import { Pagination } from "@/modules/rbac/components/shared/Pagination"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Users } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users } from "lucide-react"
+import { TableSkeleton } from "@/modules/rbac/components/shared/TableSkeleton"
 import CreateUserButton from "./_components/CreateUserButton"
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[]>>
-}
-
-function TableSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-11 w-full rounded-md" />
-      ))}
-    </div>
-  )
 }
 
 async function UserManagementContent({

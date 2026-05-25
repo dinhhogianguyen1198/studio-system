@@ -115,7 +115,7 @@ function DeleteFeedbackButton({ feedback, orderId }: { feedback: Feedback; order
         <Button
           size="sm"
           variant="ghost"
-          className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+          className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
@@ -151,7 +151,7 @@ export function OrderFeedbackSection({ orderId, feedbacks }: Props) {
           <AddFeedbackDialog orderId={orderId} />
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="pt-3 pb-4">
         {feedbacks.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground italic">
             Chưa có phản hồi nào được ghi nhận.

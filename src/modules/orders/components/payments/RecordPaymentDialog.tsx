@@ -2,6 +2,7 @@
 
 import { useState, useActionState, useEffect } from "react"
 import { toast } from "sonner"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -63,8 +64,9 @@ export function RecordPaymentDialog({ orderId }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="w-full">
-          Ghi nhận thanh toán
+        <Button size="sm" variant="outline" className="h-7 gap-1.5 px-2.5 text-xs shrink-0">
+          <Plus className="h-3.5 w-3.5" />
+          Ghi nhận
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

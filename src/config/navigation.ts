@@ -3,8 +3,6 @@ import {
   Users,
   Building2,
   ShieldCheck,
-  Settings,
-  FileText,
   UserCog,
   ShoppingCart,
   Layers,
@@ -12,7 +10,9 @@ import {
   Wallet,
   Boxes,
   Receipt,
+  FileText,
   TrendingUp,
+  KanbanSquare,
   type LucideIcon,
 } from "lucide-react"
 import type { Resource, Action } from "@/shared/types/rbac.types"
@@ -53,6 +53,13 @@ export const navItems: NavItem[] = [
 
 
   // ── Vận hành ──────────────────────────────────────────────────────────────────
+  {
+    title: "Kanban sản xuất",
+    href: "/dashboard/production/kanban",
+    icon: KanbanSquare,
+    permission: { resource: "orders", action: "read" },
+    section: "Vận hành",
+  },
   {
     title: "Sản phẩm & Dịch vụ",
     href: "/dashboard/services",
@@ -135,24 +142,10 @@ export const navItems: NavItem[] = [
     section: "Quản trị",
   },
   {
-    title: "Nhật ký",
-    href: "/dashboard/admin/audit-logs",
-    icon: FileText,
-    permission: { resource: "audit_logs", action: "read" },
-    section: "Quản trị",
-  },
-  {
     title: "Đơn vị quản lý đơn hàng",
     href: "/dashboard/settings/order-management-units",
     icon: Boxes,
     permission: { resource: "order_management_units", action: "read" },
-    section: "Quản trị",
-  },
-  {
-    title: "Cài đặt",
-    href: "/dashboard/settings",
-    icon: Settings,
-    permission: { resource: "settings", action: "read" },
     section: "Quản trị",
   },
 ]

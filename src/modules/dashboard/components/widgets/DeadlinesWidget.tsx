@@ -56,8 +56,8 @@ export function DeadlinesWidget({
         <div className="space-y-0">
           {deadlines.map((item, index) => (
             <Link
-              key={`${item.id}-${item.orderCode}`}
-              href={`/dashboard/orders/${item.id}`}
+              key={item.id}
+              href={`/dashboard/orders/${item.orderId}`}
               className={cn(
                 "flex items-start gap-3 py-2.5 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors",
                 index < deadlines.length - 1 && "border-b border-border/50",

@@ -299,6 +299,8 @@ model WorkflowTemplate {
   createdBy   User                @relation("WorkflowTemplateCreator", fields: [createdById], references: [id])
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
+  @@index([name])
+  @@index([createdById])
   @@map("workflow_templates")
 }
 
@@ -527,6 +529,8 @@ model AuditLog {
   createdAt  DateTime @default(now())
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   @@index([userId])
+  @@index([action])
+  @@index([resource])
   @@index([resource, action])
   @@index([createdAt])
   @@map("audit_logs")

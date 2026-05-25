@@ -53,8 +53,6 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
   const [notes, setNotes] = useState(item.notes ?? "")
   const [itemLocation, setItemLocation] = useState(item.location ?? "")
 
-  const isDeadlineAutoCalc = !!eventDate && durationDays != null
-
   function handleEventDateChange(value: string) {
     setEventDate(value)
     if (value && durationDays != null) {
@@ -91,7 +89,7 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
           <Pencil className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
@@ -141,13 +139,8 @@ export function EditOrderItemDialog({ item, orderId }: Props) {
                 type="date"
                 name="deadline"
                 value={deadline}
-                readOnly={isDeadlineAutoCalc}
                 onChange={(e) => setDeadline(e.target.value)}
-                className={cn(
-                  fieldClass,
-                  "cursor-pointer",
-                  isDeadlineAutoCalc && "bg-muted text-muted-foreground",
-                )}
+                className={cn(fieldClass, "cursor-pointer")}
               />
             </div>
           </div>

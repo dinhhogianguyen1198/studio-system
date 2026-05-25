@@ -29,9 +29,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Shield, Trash2, Edit } from "lucide-react"
+import { MoreHorizontal, Trash2, Edit, UserX } from "lucide-react"
 import { deleteUserAction } from "@/modules/rbac/actions/rbac-user.actions"
-import { AssignRoleModal } from "./AssignRoleModal"
 import { EditUserModal } from "./EditUserModal"
 import type { UserSummary } from "@/modules/rbac/types/rbac-management.types"
 import type { RoleSummary } from "@/modules/rbac/types/rbac-management.types"
@@ -45,7 +44,6 @@ interface UserTableProps {
 export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
   const [isPending, startTransition] = useTransition()
   const [deleteTarget, setDeleteTarget] = useState<UserSummary | null>(null)
-  const [assignRoleTarget, setAssignRoleTarget] = useState<UserSummary | null>(null)
   const [editTarget, setEditTarget] = useState<UserSummary | null>(null)
 
   function handleDelete() {
@@ -63,11 +61,16 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
 
   if (users.length === 0) {
     return (
-      <div className="rounded-lg border border-border flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm font-medium">Chưa có người dùng nào</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Thêm người dùng đầu tiên để bắt đầu
-        </p>
+      <div className="rounded-lg border border-border flex flex-col items-center justify-center py-16 text-center gap-3">
+        <div className="size-10 rounded-lg bg-muted flex items-center justify-center">
+          <UserX className="size-5 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">Chưa có người dùng nào</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Thêm người dùng đầu tiên để bắt đầu phân quyền
+          </p>
+        </div>
       </div>
     )
   }
@@ -83,9 +86,6 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
               </TableHead>
               <TableHead className="text-xs font-medium uppercase tracking-wide">
                 Vai trò chính
-              </TableHead>
-              <TableHead className="text-xs font-medium uppercase tracking-wide">
-                Vai trò bổ sung
               </TableHead>
               <TableHead className="text-xs font-medium uppercase tracking-wide">
                 Ngày tạo
@@ -117,23 +117,6 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
                     {user.role.name}
                   </Badge>
                 </TableCell>
-                <TableCell className="px-3">
-                  <div className="flex flex-wrap gap-1">
-                    {user.userRoles.length === 0 ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      user.userRoles.map((ur) => (
-                        <Badge
-                          key={ur.id}
-                          variant="outline"
-                          className="rounded-md text-xs"
-                        >
-                          {ur.role.name}
-                        </Badge>
-                      ))
-                    )}
-                  </div>
-                </TableCell>
                 <TableCell className="px-3 text-xs text-muted-foreground">
                   {new Date(user.createdAt).toLocaleDateString("vi-VN")}
                 </TableCell>
@@ -142,8 +125,7 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
+                        size="icon-sm"
                       >
                         <MoreHorizontal className="size-4" />
                         <span className="sr-only">Thao tác</span>
@@ -155,12 +137,6 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
                       >
                         <Edit className="size-4 mr-2" />
                         Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAssignRoleTarget(user)}
-                      >
-                        <Shield className="size-4 mr-2" />
-                        Gán vai trò
                       </DropdownMenuItem>
                       {user.id !== currentUserId && (
                         <>
@@ -208,16 +184,6 @@ export function UserTable({ users, allRoles, currentUserId }: UserTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Assign role modal */}
-      {assignRoleTarget && (
-        <AssignRoleModal
-          user={assignRoleTarget}
-          allRoles={allRoles}
-          open={!!assignRoleTarget}
-          onOpenChange={(open) => !open && setAssignRoleTarget(null)}
-        />
-      )}
 
       {/* Edit user modal */}
       {editTarget && (
