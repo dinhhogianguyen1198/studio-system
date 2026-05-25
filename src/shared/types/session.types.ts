@@ -17,7 +17,6 @@ declare module "@auth/core/jwt" {
     id: string
     roleId: string
     roleName: string
-    permissions: string[]
   }
 }
 

@@ -74,9 +74,7 @@ export async function loginAction(
       id: user.id,
       roleId: user.roleId,
       roleName: user.role.name,
-      permissions: user.role.permissions.map(
-        (rp) => `${rp.permission.resource}:${rp.permission.action}`
-      ),
+      // permissions không lưu trong JWT — fetch từ DB trong session callback
     },
     secret: process.env.AUTH_SECRET!,
     maxAge: SESSION_MAX_AGE,

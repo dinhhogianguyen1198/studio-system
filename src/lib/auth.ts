@@ -1,13 +1,31 @@
 import "server-only"
+import { cache } from "react"
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { authService } from "@/modules/auth/service/auth.service"
 import { loginSchema } from "@/modules/auth/schemas/auth.schema"
 import { authConfig } from "./auth.config"
+import { db } from "@/shared/lib/prisma"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
 
 // Đảm bảo session types được augment
 import "@/shared/types/session.types"
+
+// Cache per request — dedup khi layout + page cùng gọi auth()
+const getRoleWithPermissions = cache(async (roleId: string): Promise<RoleWithPermissions> => {
+  return db.role.findUniqueOrThrow({
+    where: { id: roleId },
+    select: {
+      id: true,
+      name: true,
+      permissions: {
+        select: {
+          permission: { select: { resource: true, action: true } },
+        },
+      },
+    },
+  }) as Promise<RoleWithPermissions>
+})
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -46,16 +64,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig.callbacks,
 
     async jwt({ token, user }) {
-      // Chỉ chạy lần đầu khi user đăng nhập
       if (user) {
         token.id = user.id as string
         const u = user as typeof user & { roleId: string; role: RoleWithPermissions }
         token.roleId = u.roleId
         token.roleName = u.role.name
-        // Lưu dạng compact "resource:action" để tránh cookie quá lớn (HTTP 431)
-        token.permissions = u.role.permissions.map(
-          (rp) => `${rp.permission.resource}:${rp.permission.action}`
-        )
+        // permissions không lưu trong JWT — fetch từ DB mỗi request để tránh cookie quá lớn
       }
       return token
     },
@@ -64,20 +78,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token) {
         session.user.id = token.id
         session.user.roleId = token.roleId
-        // Reconstruct RoleWithPermissions từ compact strings
-        session.user.role = {
-          id: token.roleId,
-          name: token.roleName,
-          permissions: token.permissions.map((p) => {
-            const idx = p.indexOf(":")
-            return {
-              permission: {
-                resource: p.slice(0, idx),
-                action: p.slice(idx + 1),
-              },
-            }
-          }),
-        }
+        session.user.role = await getRoleWithPermissions(token.roleId)
       }
       return session
     },
