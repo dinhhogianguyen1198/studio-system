@@ -157,6 +157,70 @@ export async function changePasswordAction(
   }
 }
 
+// ─── Assign role to user ──────────────────────────────────────────────────────
+
+export async function assignRoleToUserAction(
+  userId: string,
+  _prevState: ActionResult<void>,
+  formData: FormData
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("users", "update")
+
+  const roleId = formData.get("roleId")?.toString()
+  if (!roleId) {
+    return { success: false, error: "Vui lòng chọn vai trò" }
+  }
+
+  try {
+    await rbacUserService.assignRole(userId, roleId, session.user.id)
+    const meta = await getRequestMeta()
+
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "users",
+      resourceId: userId,
+      metadata: { action: "ASSIGN_ROLE", roleId },
+      ...meta,
+    })
+
+    revalidatePath("/dashboard/settings/users")
+
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toRbacError(err, "Gán vai trò thất bại") }
+  }
+}
+
+// ─── Revoke role from user ────────────────────────────────────────────────────
+
+export async function revokeRoleFromUserAction(
+  userId: string,
+  roleId: string
+): Promise<ActionResult<void>> {
+  const session = await requirePermission("users", "update")
+
+  try {
+    await rbacUserService.revokeRole(userId, roleId, session.user.id)
+    const meta = await getRequestMeta()
+
+    await writeAuditLog({
+      userId: session.user.id,
+      action: "UPDATE",
+      resource: "users",
+      resourceId: userId,
+      metadata: { action: "REVOKE_ROLE", roleId },
+      ...meta,
+    })
+
+    revalidatePath("/dashboard/settings/users")
+
+    return { success: true, data: undefined }
+  } catch (err) {
+    return { success: false, error: toRbacError(err, "Thu hồi vai trò thất bại") }
+  }
+}
+
 // ─── Delete user ──────────────────────────────────────────────────────────────
 
 export async function deleteUserAction(
