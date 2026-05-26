@@ -68,7 +68,7 @@ export function ServiceDefinitionForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="name" className="block text-sm font-medium">
-            Tên dịch vụ <span className="text-red-500">*</span>
+            Tên dịch vụ <span className="text-destructive">*</span>
           </label>
           <Input
             id="name"
@@ -81,7 +81,7 @@ export function ServiceDefinitionForm({
         </div>
         <div className="space-y-1.5">
           <label htmlFor="slug" className="block text-sm font-medium">
-            Slug <span className="text-red-500">*</span>
+            Slug <span className="text-destructive">*</span>
           </label>
           <Input
             id="slug"
@@ -112,7 +112,7 @@ export function ServiceDefinitionForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="defaultPrice" className="block text-sm font-medium">
-            Giá mặc định (VND) <span className="text-red-500">*</span>
+            Giá mặc định (VND) <span className="text-destructive">*</span>
           </label>
           <input type="hidden" name="defaultPrice" value={priceRaw} />
           <Input

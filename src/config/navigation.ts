@@ -13,6 +13,7 @@ import {
   FileText,
   TrendingUp,
   KanbanSquare,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react"
 import type { Resource, Action } from "@/shared/types/rbac.types"
@@ -72,6 +73,13 @@ export const navItems: NavItem[] = [
     href: "/dashboard/workforce/workers",
     icon: HardHat,
     permission: { resource: "workforce_workers", action: "read" },
+    section: "Vận hành",
+  },
+  {
+    title: "Kỹ năng / Vai trò",
+    href: "/dashboard/workforce/job-types",
+    icon: Briefcase,
+    permission: { resource: "workforce_job_types", action: "read" },
     section: "Vận hành",
   },
   {

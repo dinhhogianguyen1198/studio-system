@@ -16,19 +16,19 @@ interface KanbanColumnProps {
 
 const COLUMN_HEADER_ACCENT: Record<string, string> = {
   NEW: "border-t-muted-foreground/40",
-  WAITING_FILES: "border-t-warning",
-  PARTIAL_DELIVERY: "border-t-info",
-  OVERDUE: "border-t-destructive",
-  FILES_DELIVERED: "border-t-success",
+  WAITING_FILES: "border-t-indicator-warning",
+  PARTIAL_DELIVERY: "border-t-indicator-info",
+  OVERDUE: "border-t-indicator-danger",
+  FILES_DELIVERED: "border-t-indicator-success",
   COMPLETED: "border-t-primary",
 }
 
 const COLUMN_COUNT_BADGE: Record<string, string> = {
   NEW: "bg-muted text-muted-foreground",
-  WAITING_FILES: "bg-warning/20 text-warning-foreground",
-  PARTIAL_DELIVERY: "bg-info/20 text-info-foreground",
-  OVERDUE: "bg-destructive/20 text-destructive",
-  FILES_DELIVERED: "bg-success/20 text-success-foreground",
+  WAITING_FILES: "bg-indicator-warning/15 text-indicator-warning",
+  PARTIAL_DELIVERY: "bg-indicator-info/15 text-indicator-info",
+  OVERDUE: "bg-indicator-danger/15 text-indicator-danger",
+  FILES_DELIVERED: "bg-indicator-success/15 text-indicator-success",
   COMPLETED: "bg-primary/10 text-foreground",
 }
 

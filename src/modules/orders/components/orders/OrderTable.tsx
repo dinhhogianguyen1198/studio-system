@@ -168,7 +168,7 @@ export function OrderTable({ orders, meta, managementUnits }: Props) {
         </div>
       ) : (
         <>
-          <div className="rounded-lg border border-border overflow-hidden">
+          <div>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -257,7 +257,7 @@ export function OrderTable({ orders, meta, managementUnits }: Props) {
                         {Number(order.totalAmount) > 0 && (
                           <div className="mt-1 h-1 w-full rounded-full bg-muted overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-success-foreground/70 transition-all"
+                              className="h-full rounded-full bg-indicator-success/70 transition-all"
                               style={{ width: `${paidPercent}%` }}
                             />
                           </div>

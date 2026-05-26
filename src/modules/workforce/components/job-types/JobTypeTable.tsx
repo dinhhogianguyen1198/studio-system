@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, Pencil } from "lucide-react"
 import {
   DropdownMenu,
@@ -26,7 +25,37 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { JobTypeBadge } from "./JobTypeBadge"
 import { DeleteJobTypeButton } from "./DeleteJobTypeButton"
+import { EditJobTypeModal } from "./EditJobTypeModal"
 import type { JobTypeSummary } from "@/modules/workforce/types/workforce.types"
+
+function JobTypeActionsCell({ jobType }: { jobType: JobTypeSummary }) {
+  const [editOpen, setEditOpen] = useState(false)
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Chỉnh sửa
+          </DropdownMenuItem>
+          <DeleteJobTypeButton id={jobType.id} name={jobType.name} />
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <EditJobTypeModal
+        jobType={jobType}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+    </>
+  )
+}
 
 interface Props {
   jobTypes: JobTypeSummary[]
@@ -38,13 +67,11 @@ export function JobTypeTable({ jobTypes }: Props) {
       id: "name",
       header: "Tên",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <JobTypeBadge
-            name={row.original.name}
-            color={row.original.color}
-            size="sm"
-          />
-        </div>
+        <JobTypeBadge
+          name={row.original.name}
+          color={row.original.color}
+          size="sm"
+        />
       ),
     },
     {
@@ -66,55 +93,16 @@ export function JobTypeTable({ jobTypes }: Props) {
       ),
     },
     {
-      id: "status",
-      header: "Trạng thái",
-      cell: ({ row }) =>
-        row.original.isActive ? (
-          <Badge
-            variant="default"
-            className="bg-green-100 text-green-800 hover:bg-green-100"
-          >
-            Đang hoạt động
-          </Badge>
-        ) : (
-          <Badge variant="secondary">Ngừng hoạt động</Badge>
-        ),
-    },
-    {
       accessorKey: "sortOrder",
       header: "Thứ tự",
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">
-          {row.original.sortOrder}
-        </span>
+        <span className="text-sm text-muted-foreground">{row.original.sortOrder}</span>
       ),
     },
     {
       id: "actions",
       header: "",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link
-                href={`/dashboard/workforce/job-types/${row.original.id}/edit`}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Chỉnh sửa
-              </Link>
-            </DropdownMenuItem>
-            <DeleteJobTypeButton
-              id={row.original.id}
-              name={row.original.name}
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => <JobTypeActionsCell jobType={row.original} />,
     },
   ]
 

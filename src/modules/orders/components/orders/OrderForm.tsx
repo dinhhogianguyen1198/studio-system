@@ -65,7 +65,7 @@ export function OrderForm({ action, customers, submitLabel = "Tạo đơn hàng"
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="contactName" className="block text-sm font-medium">
-            Tên liên hệ <span className="text-red-500">*</span>
+            Tên liên hệ <span className="text-destructive">*</span>
           </label>
           <Input
             id="contactName"

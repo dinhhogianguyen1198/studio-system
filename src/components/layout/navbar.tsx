@@ -16,6 +16,7 @@ import { LogOut, Settings } from "lucide-react"
 import { signOut } from "next-auth/react"
 import type { SessionUser } from "@/shared/types/session.types"
 import type { RoleWithPermissions } from "@/shared/types/rbac.types"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 interface NavbarProps {
   user: SessionUser
@@ -42,6 +43,7 @@ export function Navbar({ user }: NavbarProps) {
 
       {/* Right actions */}
       <div className="flex items-center gap-2 ml-auto">
+        <ThemeToggle />
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

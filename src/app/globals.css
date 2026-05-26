@@ -67,6 +67,12 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* Vivid indicators — for borders, strips, progress bars, icon fills */
+  --color-indicator-success: var(--indicator-success);
+  --color-indicator-warning: var(--indicator-warning);
+  --color-indicator-info:    var(--indicator-info);
+  --color-indicator-danger:  var(--indicator-danger);
+
   /* Cinematic luxury — dashboard accent tokens */
   --color-accent-gold: var(--accent-gold);
   --color-accent-gold-foreground: var(--accent-gold-foreground);
@@ -89,6 +95,7 @@
    Philosophy: near-black primary, white surface, zinc neutrals
 ═══════════════════════════════════════════════════════════════ */
 :root {
+  color-scheme: light;
   --radius: 0.5rem; /* 8px base */
 
   /* ── Muted (defined first — referenced by --background) ────── */
@@ -152,6 +159,14 @@
   --chart-4: oklch(0.553 0.149 52.5);   /* amber-600 */
   --chart-5: oklch(0.577 0.245 27.3);   /* red-500 */
 
+  /* ── Vivid indicators — for borders, strips, progress, icons ─ */
+  /* Unlike semantic bg tokens (success/warning/info = pale tint), */
+  /* these are saturated for use as visual accent marks.           */
+  --indicator-success: oklch(0.527 0.154 150.1);  /* emerald-600 */
+  --indicator-warning: oklch(0.553 0.149 52.5);   /* amber-600 */
+  --indicator-info:    oklch(0.546 0.188 248.5);  /* blue-600 */
+  --indicator-danger:  oklch(0.577 0.245 27.3);   /* red-500 */
+
   /* ── Cinematic luxury — dashboard accent ────────────────────── */
   --accent-gold: oklch(0.75 0.12 75);              /* warm gold */
   --accent-gold-foreground: oklch(0.35 0.06 70);   /* dark gold text */
@@ -165,6 +180,8 @@
    Philosophy: near-black bg, white primary, subtle surfaces
 ═══════════════════════════════════════════════════════════════ */
 .dark {
+  color-scheme: dark;
+
   /* ── Muted (defined first — referenced by --background) ────── */
   --muted:             oklch(0.205 0.006 285.9);   /* zinc-900 */
   --muted-foreground:  oklch(0.705 0.015 286.1);   /* #A1A1AA zinc-400 */
@@ -225,6 +242,12 @@
   --chart-4: oklch(0.684 0.147 52.5);   /* amber-400 */
   --chart-5: oklch(0.628 0.258 29.2);   /* red-400 */
 
+  /* ── Vivid indicators — dark mode brighter variants ─────────── */
+  --indicator-success: oklch(0.596 0.145 153.3);  /* emerald-500 */
+  --indicator-warning: oklch(0.684 0.147 52.5);   /* amber-400 */
+  --indicator-info:    oklch(0.623 0.183 241.1);  /* blue-400 */
+  --indicator-danger:  oklch(0.628 0.258 29.2);   /* red-400 */
+
   /* ── Cinematic luxury — dashboard accent ────────────────────── */
   --accent-gold: oklch(0.80 0.14 75);              /* warm gold bright */
   --accent-gold-foreground: oklch(0.20 0.04 70);   /* gold text on dark */
@@ -238,6 +261,17 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /* Smooth theme switching — only color properties, 150ms so hover states aren't sluggish */
+  @media (prefers-reduced-motion: no-preference) {
+    *,
+    *::before,
+    *::after {
+      transition-property: background-color, border-color, box-shadow;
+      transition-duration: 150ms;
+      transition-timing-function: ease;
+    }
   }
 
   html {
@@ -276,5 +310,102 @@
 
   .dark ::selection {
     background: oklch(0.985 0.001 264.6 / 0.15);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REACT-BIG-CALENDAR OVERRIDES
+   Re-skin the calendar to match our design token system.
+═══════════════════════════════════════════════════════════════ */
+@layer base {
+  .rbc-calendar {
+    @apply font-sans text-sm text-foreground;
+  }
+
+  /* Toolbar */
+  .rbc-toolbar {
+    @apply mb-4 flex flex-wrap items-center gap-2;
+  }
+  .rbc-toolbar-label {
+    @apply text-base font-semibold;
+  }
+  .rbc-btn-group button {
+    @apply h-8 px-3 text-sm font-medium rounded-md border border-border bg-transparent text-foreground transition-colors;
+    @apply hover:bg-muted cursor-pointer;
+  }
+  .rbc-btn-group button.rbc-active,
+  .rbc-btn-group button:active {
+    @apply bg-secondary border-border shadow-none;
+  }
+
+  /* Header row */
+  .rbc-header {
+    @apply h-10 px-3 text-xs font-medium uppercase tracking-wide text-muted-foreground border-b border-border;
+    display: flex;
+    align-items: center;
+  }
+  .rbc-header + .rbc-header {
+    @apply border-l border-border;
+  }
+
+  /* Grid */
+  .rbc-month-view,
+  .rbc-time-view {
+    @apply border border-border rounded-lg overflow-hidden bg-card;
+  }
+  .rbc-day-bg + .rbc-day-bg,
+  .rbc-month-row + .rbc-month-row {
+    @apply border-l-0;
+  }
+  .rbc-month-row {
+    @apply border-t border-border;
+  }
+  .rbc-day-bg {
+    @apply border-r border-border last:border-r-0;
+  }
+  .rbc-off-range-bg {
+    @apply bg-muted/30;
+  }
+  .rbc-today {
+    @apply bg-primary/5;
+  }
+
+  /* Date label */
+  .rbc-date-cell {
+    @apply py-1 pr-2 text-right text-xs font-medium text-muted-foreground;
+  }
+  .rbc-date-cell.rbc-now {
+    @apply text-foreground font-semibold;
+  }
+
+  /* Events */
+  .rbc-event {
+    @apply bg-primary text-primary-foreground text-xs rounded-sm px-1.5 py-0.5 border-0 outline-none;
+  }
+  .rbc-event:focus {
+    @apply ring-2 ring-ring/40;
+  }
+  .rbc-event.rbc-selected {
+    @apply bg-primary/90;
+  }
+  .rbc-show-more {
+    @apply text-xs text-muted-foreground hover:text-foreground font-medium;
+  }
+
+  /* Time view */
+  .rbc-time-gutter .rbc-timeslot-group {
+    @apply border-b border-border;
+  }
+  .rbc-time-content {
+    @apply border-t border-border;
+  }
+  .rbc-timeslot-group {
+    @apply border-b border-border;
+  }
+  .rbc-time-slot {
+    @apply text-[11px] text-muted-foreground;
+  }
+  .rbc-current-time-indicator {
+    @apply bg-indicator-danger h-0.5;
   }
 }

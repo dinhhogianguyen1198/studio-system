@@ -51,7 +51,7 @@ export function Sidebar({ role, appName = "Lu Production" }: SidebarProps) {
           alt="StudioOS"
           width={28}
           height={28}
-          className="shrink-0 object-contain brightness-0"
+          className="shrink-0 object-contain brightness-0 dark:brightness-0 dark:invert"
         />
         {!isCollapsed && (
           <span className="font-semibold text-sm tracking-tight text-sidebar-foreground truncate">

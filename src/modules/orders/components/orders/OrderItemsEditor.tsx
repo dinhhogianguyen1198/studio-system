@@ -79,11 +79,11 @@ function ServicePickerDialog({ services, addedIds, onAdd, onClose }: ServicePick
                         {svc.name}
                       </p>
                       {isAdded ? (
-                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary">
                           <Check className="h-3 w-3 text-primary-foreground" />
                         </span>
                       ) : (
-                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-card opacity-0 transition-opacity group-hover:opacity-100">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border bg-card opacity-0 transition-opacity group-hover:opacity-100">
                           <Plus className="h-3 w-3 text-muted-foreground" />
                         </span>
                       )}
@@ -123,7 +123,7 @@ interface OrderItemCardProps {
 }
 
 const fieldInputClass =
-  "h-9 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground transition-all focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+  "h-8 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground/50 transition-all focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
 
 function calculateDeadline(eventDate: string, durationDays: number | null): string {
   if (!eventDate || durationDays == null) return ""
@@ -134,9 +134,10 @@ function calculateDeadline(eventDate: string, durationDays: number | null): stri
 
 function OrderItemCard({ item, onRemove, onUpdate }: OrderItemCardProps) {
   function handleEventDateChange(value: string) {
-    const deadline = value && item.defaultDurationDays != null
-      ? calculateDeadline(value, item.defaultDurationDays)
-      : undefined
+    const deadline =
+      value && item.defaultDurationDays != null
+        ? calculateDeadline(value, item.defaultDurationDays)
+        : undefined
     onUpdate(item._key, { eventDate: value || undefined, deadline: deadline || undefined })
   }
 
@@ -147,82 +148,74 @@ function OrderItemCard({ item, onRemove, onUpdate }: OrderItemCardProps) {
 
   return (
     <div className="rounded-xl border border-border bg-card">
-      {/* Card header */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        <GripVertical className="h-4 w-4 flex-shrink-0 cursor-grab text-muted-foreground/40" />
-        <p className="flex-1 text-sm font-semibold text-foreground">{item.serviceName}</p>
+      {/* Header: drag handle + service name + delete */}
+      <div className="flex items-center gap-2 px-4 py-3">
+        <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/25" />
+        <p className="flex-1 truncate text-sm font-semibold text-foreground">{item.serviceName}</p>
         <button
           type="button"
           onClick={() => onRemove(item._key)}
-          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground/50 transition-colors hover:bg-destructive/10 hover:text-destructive"
           aria-label="Xóa"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      {/* Fields */}
-      <div className="grid grid-cols-3 gap-3 border-t border-border bg-muted/40 px-4 py-4">
-        {/* Giá */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Giá (₫)</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={item.price.toLocaleString("vi-VN")}
-            onChange={handlePriceChange}
-            className={fieldInputClass}
-          />
+      {/* Fields area */}
+      <div className="space-y-2.5 border-t border-border bg-muted/30 px-4 pb-4 pt-3">
+        {/* Price + dates row */}
+        <div className="grid grid-cols-3 gap-2.5">
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Giá (₫)</p>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={item.price.toLocaleString("vi-VN")}
+              onChange={handlePriceChange}
+              className={fieldInputClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Ngày diễn ra</p>
+            <input
+              type="date"
+              value={item.eventDate ?? ""}
+              onChange={(e) => handleEventDateChange(e.target.value)}
+              className={cn(fieldInputClass, "cursor-pointer")}
+            />
+          </div>
+          <div className="space-y-1">
+            <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              Ngày trả file
+              {item.defaultDurationDays != null && (
+                <span className="font-normal text-muted-foreground/40">+{item.defaultDurationDays}d</span>
+              )}
+            </p>
+            <input
+              type="date"
+              value={item.deadline ? item.deadline.slice(0, 10) : ""}
+              onChange={(e) => onUpdate(item._key, { deadline: e.target.value || undefined })}
+              className={cn(fieldInputClass, "cursor-pointer")}
+            />
+          </div>
         </div>
 
-        {/* Ngày diễn ra */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Ngày diễn ra</label>
-          <input
-            type="date"
-            value={item.eventDate ?? ""}
-            onChange={(e) => handleEventDateChange(e.target.value)}
-            className={cn(fieldInputClass, "cursor-pointer")}
-          />
-        </div>
-
-        {/* Ngày trả file */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Ngày trả file
-            {item.defaultDurationDays != null && (
-              <span className="ml-1 text-muted-foreground/50">+{item.defaultDurationDays}d</span>
-            )}
-          </label>
-          <input
-            type="date"
-            value={item.deadline ? item.deadline.slice(0, 10) : ""}
-            onChange={(e) => onUpdate(item._key, { deadline: e.target.value || undefined })}
-            className={cn(fieldInputClass, "cursor-pointer")}
-          />
-        </div>
-
-        {/* Địa điểm */}
-        <div className="col-span-3 space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Địa điểm</label>
+        {/* Location + notes row */}
+        <div className="grid grid-cols-2 gap-2.5">
           <input
             type="text"
             value={item.location ?? ""}
             onChange={(e) => onUpdate(item._key, { location: e.target.value || undefined })}
-            placeholder="VD: Hội trường A, Nhà hàng ABC, Quận 1..."
-            className={cn(fieldInputClass, "placeholder:text-muted-foreground")}
+            placeholder="Địa điểm..."
+            className={fieldInputClass}
           />
-        </div>
-
-        {/* Ghi chú */}
-        <div className="col-span-3 space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Ghi chú</label>
           <input
             type="text"
             value={item.notes ?? ""}
             onChange={(e) => onUpdate(item._key, { notes: e.target.value || undefined })}
-            placeholder="Yêu cầu cụ thể..."
-            className={cn(fieldInputClass, "placeholder:text-muted-foreground")}
+            placeholder="Ghi chú..."
+            className={fieldInputClass}
           />
         </div>
       </div>

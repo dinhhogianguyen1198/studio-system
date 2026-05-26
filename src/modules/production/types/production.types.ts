@@ -293,37 +293,37 @@ export const KANBAN_COLUMNS: Omit<KanbanColumnMeta, "count" | "orders">[] = [
   {
     status: "NEW",
     label: "Mới tạo",
-    color: "hsl(var(--muted-foreground))",
+    color: "var(--muted-foreground)",
     isAutoComputed: false,
   },
   {
     status: "WAITING_FILES",
     label: "Chờ giao file",
-    color: "hsl(var(--warning))",
+    color: "var(--warning)",
     isAutoComputed: true,
   },
   {
     status: "PARTIAL_DELIVERY",
     label: "Giao một phần",
-    color: "hsl(var(--info))",
+    color: "var(--info)",
     isAutoComputed: true,
   },
   {
     status: "OVERDUE",
     label: "Trễ hạn",
-    color: "hsl(var(--destructive))",
+    color: "var(--destructive)",
     isAutoComputed: true,
   },
   {
     status: "FILES_DELIVERED",
     label: "Đã giao file",
-    color: "hsl(var(--success))",
+    color: "var(--success)",
     isAutoComputed: false,
   },
   {
     status: "COMPLETED",
     label: "Hoàn thành",
-    color: "hsl(var(--primary))",
+    color: "var(--primary)",
     isAutoComputed: false,
   },
 ]

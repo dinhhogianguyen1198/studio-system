@@ -73,7 +73,7 @@ export default async function FinanceDashboardPage() {
           href="/dashboard/finance/expenses"
           className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/40"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-orange-100 text-orange-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-warning text-warning-foreground">
             <Receipt className="h-4 w-4" />
           </div>
           <div>
@@ -85,7 +85,7 @@ export default async function FinanceDashboardPage() {
           href="/dashboard/finance/invoices"
           className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/40"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 text-blue-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-info text-info-foreground">
             <FileText className="h-4 w-4" />
           </div>
           <div>
@@ -97,7 +97,7 @@ export default async function FinanceDashboardPage() {
           href="/dashboard/finance/payroll"
           className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/40"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-100 text-green-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-success text-success-foreground">
             <Wallet className="h-4 w-4" />
           </div>
           <div>
@@ -109,7 +109,7 @@ export default async function FinanceDashboardPage() {
           href="/dashboard/finance/reports"
           className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/40"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-purple-100 text-purple-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-foreground">
             <TrendingUp className="h-4 w-4" />
           </div>
           <div>

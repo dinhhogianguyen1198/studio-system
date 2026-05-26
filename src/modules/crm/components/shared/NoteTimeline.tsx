@@ -44,10 +44,10 @@ function AddNoteForm({
         placeholder="Thêm ghi chú..."
         rows={3}
         required
-        className={!state.success && state.fieldErrors?.content ? "border-red-400" : ""}
+        aria-invalid={!state.success && !!state.fieldErrors?.content}
       />
       {!state.success && state.error && (
-        <p className="text-xs text-red-600">{state.error}</p>
+        <p className="text-xs text-destructive">{state.error}</p>
       )}
       <Button type="submit" size="sm" disabled={isPending}>
         {isPending ? "Đang lưu..." : "Thêm ghi chú"}

@@ -18,6 +18,11 @@ import { InvoiceStatusBadge } from "../shared/StatusBadge"
 import { sendInvoiceAction, cancelInvoiceAction } from "../../actions/invoice.actions"
 import type { InvoiceSummary } from "../../types/finance.types"
 
+type SerializedInvoice = Omit<InvoiceSummary, "totalAmount" | "paidAmount"> & {
+  totalAmount: number
+  paidAmount: number
+}
+
 function SendButton({ invoiceId }: { invoiceId: string }) {
   const [state, formAction, isPending] = useActionState(sendInvoiceAction, { success: false as const, error: "" })
   useEffect(() => {
@@ -29,7 +34,7 @@ function SendButton({ invoiceId }: { invoiceId: string }) {
       <input type="hidden" name="id" value={invoiceId} />
       <DropdownMenuItem asChild>
         <button type="submit" disabled={isPending} className="w-full">
-          <Send className="mr-2 h-3.5 w-3.5 text-blue-600" />
+          <Send className="mr-2 h-3.5 w-3.5 text-indicator-info" />
           Đánh dấu đã gửi
         </button>
       </DropdownMenuItem>
@@ -57,7 +62,7 @@ function CancelButton({ invoiceId }: { invoiceId: string }) {
 }
 
 interface Props {
-  invoices: InvoiceSummary[]
+  invoices: SerializedInvoice[]
 }
 
 export function InvoiceTable({ invoices }: Props) {
@@ -101,7 +106,7 @@ export function InvoiceTable({ invoices }: Props) {
           </thead>
           <tbody>
             {invoices.map((invoice) => {
-              const remaining = invoice.totalAmount.toNumber() - invoice.paidAmount.toNumber()
+              const remaining = invoice.totalAmount - invoice.paidAmount
               const isOverdue =
                 invoice.status === "OVERDUE" ||
                 (["SENT", "PARTIAL"].includes(invoice.status) &&
@@ -135,10 +140,10 @@ export function InvoiceTable({ invoices }: Props) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-medium tabular-nums">
-                    {invoice.totalAmount.toNumber().toLocaleString("vi-VN")}đ
+                    {invoice.totalAmount.toLocaleString("vi-VN")}đ
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    <span className={remaining > 0 ? "text-orange-600 font-medium" : "text-muted-foreground"}>
+                    <span className={remaining > 0 ? "text-indicator-warning font-medium" : "text-muted-foreground"}>
                       {remaining > 0 ? `${remaining.toLocaleString("vi-VN")}đ` : "—"}
                     </span>
                   </td>

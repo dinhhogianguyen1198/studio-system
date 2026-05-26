@@ -39,8 +39,8 @@ function KpiCard({ title, value, subtitle, icon, trend, badge }: KpiCardProps) {
       <CardContent>
         <div className="flex items-end gap-2">
           <div className="text-2xl font-bold tracking-tight">{value}</div>
-          {trend === "up" && <TrendingUp className="mb-1 h-4 w-4 text-emerald-600" />}
-          {trend === "down" && <TrendingDown className="mb-1 h-4 w-4 text-red-500" />}
+          {trend === "up" && <TrendingUp className="mb-1 h-4 w-4 text-indicator-success" />}
+          {trend === "down" && <TrendingDown className="mb-1 h-4 w-4 text-indicator-danger" />}
         </div>
         {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         {badge && (

@@ -13,14 +13,16 @@ export default async function LoginPage() {
   if (session?.user) redirect("/dashboard")
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-xl border border-gray-200 bg-white px-8 py-10 shadow-sm">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-              Đăng nhập
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Lu Production</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Hệ thống quản lý studio</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card px-8 py-8 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold tracking-tight">Đăng nhập</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Nhập thông tin tài khoản của bạn
             </p>
           </div>

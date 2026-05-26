@@ -46,7 +46,7 @@ export default async function PayrollPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${unpaidCount > 0 ? "text-orange-600" : ""}`}>
+            <p className={`text-2xl font-bold ${unpaidCount > 0 ? "text-indicator-warning" : ""}`}>
               {unpaidCount} người
             </p>
             <p className="text-xs text-muted-foreground">có công việc hoàn thành chờ trả</p>
@@ -80,7 +80,7 @@ export default async function PayrollPage() {
         </Card>
       </div>
 
-      <FreelancerPayrollTable payments={payments} />
+      <FreelancerPayrollTable payments={payments.map((p) => ({ ...p, totalAmount: p.totalAmount.toNumber() }))} />
     </div>
   )
 }

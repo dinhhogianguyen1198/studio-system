@@ -20,6 +20,8 @@ import {
 } from "../../actions/freelancer-payment.actions"
 import type { FreelancerPaymentSummary } from "../../types/finance.types"
 
+type SerializedPayment = Omit<FreelancerPaymentSummary, "totalAmount"> & { totalAmount: number }
+
 function ProcessButton({ paymentId }: { paymentId: string }) {
   const [state, formAction, isPending] = useActionState(processFreelancerPaymentAction, {
     success: false as const,
@@ -35,7 +37,7 @@ function ProcessButton({ paymentId }: { paymentId: string }) {
       <input type="hidden" name="paymentMethod" value="BANK_TRANSFER" />
       <DropdownMenuItem asChild>
         <button type="submit" disabled={isPending} className="w-full">
-          <CheckCircle className="mr-2 h-3.5 w-3.5 text-emerald-600" />
+          <CheckCircle className="mr-2 h-3.5 w-3.5 text-indicator-success" />
           Đánh dấu đã trả
         </button>
       </DropdownMenuItem>
@@ -66,7 +68,7 @@ function CancelButton({ paymentId }: { paymentId: string }) {
 }
 
 interface Props {
-  payments: FreelancerPaymentSummary[]
+  payments: SerializedPayment[]
 }
 
 export function FreelancerPayrollTable({ payments }: Props) {
@@ -127,7 +129,7 @@ export function FreelancerPayrollTable({ payments }: Props) {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right font-medium tabular-nums">
-                  {payment.totalAmount.toNumber().toLocaleString("vi-VN")}đ
+                  {payment.totalAmount.toLocaleString("vi-VN")}đ
                 </td>
                 <td className="px-4 py-3">
                   <FreelancerPaymentStatusBadge status={payment.status} />
@@ -152,7 +154,7 @@ export function FreelancerPayrollTable({ payments }: Props) {
                       )}
                       {payment.status === "PAID" && (
                         <DropdownMenuItem disabled>
-                          <CheckCircle className="mr-2 h-3.5 w-3.5 text-emerald-600" />
+                          <CheckCircle className="mr-2 h-3.5 w-3.5 text-indicator-success" />
                           Đã thanh toán
                         </DropdownMenuItem>
                       )}

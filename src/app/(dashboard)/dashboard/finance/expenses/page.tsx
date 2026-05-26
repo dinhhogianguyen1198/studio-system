@@ -64,7 +64,7 @@ export default async function ExpensesPage() {
         </Card>
       </div>
 
-      <ExpenseTable expenses={expenses} />
+      <ExpenseTable expenses={expenses.map((e) => ({ ...e, amount: e.amount.toNumber() }))} />
     </div>
   )
 }

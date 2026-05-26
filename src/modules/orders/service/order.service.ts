@@ -57,7 +57,7 @@ async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear()
   return db.$transaction(async (tx) => {
     // pg_advisory_xact_lock đảm bảo chỉ 1 transaction chạy đoạn này cùng lúc
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(${ORDER_NUMBER_LOCK_KEY})`
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ORDER_NUMBER_LOCK_KEY})`
     const last = await tx.order.findFirst({
       where: { orderNumber: { startsWith: `ORD-${year}-` } },
       orderBy: { orderNumber: "desc" },

@@ -22,8 +22,10 @@ import {
 } from "../../actions/expense.actions"
 import type { ExpenseSummary } from "../../types/finance.types"
 
+type SerializedExpense = Omit<ExpenseSummary, "amount"> & { amount: number }
+
 interface RowActionsProps {
-  expense: ExpenseSummary
+  expense: SerializedExpense
 }
 
 function ApproveButton({ expenseId }: { expenseId: string }) {
@@ -37,7 +39,7 @@ function ApproveButton({ expenseId }: { expenseId: string }) {
       <input type="hidden" name="id" value={expenseId} />
       <DropdownMenuItem asChild>
         <button type="submit" disabled={isPending} className="w-full">
-          <CheckCircle className="mr-2 h-3.5 w-3.5 text-emerald-600" />
+          <CheckCircle className="mr-2 h-3.5 w-3.5 text-indicator-success" />
           Duyệt chi phí
         </button>
       </DropdownMenuItem>
@@ -76,7 +78,7 @@ function MarkPaidButton({ expenseId }: { expenseId: string }) {
       <input type="hidden" name="paymentMethod" value="BANK_TRANSFER" />
       <DropdownMenuItem asChild>
         <button type="submit" disabled={isPending} className="w-full">
-          <CreditCard className="mr-2 h-3.5 w-3.5 text-blue-600" />
+          <CreditCard className="mr-2 h-3.5 w-3.5 text-indicator-info" />
           Đánh dấu đã trả
         </button>
       </DropdownMenuItem>
@@ -132,7 +134,7 @@ function RowActions({ expense }: RowActionsProps) {
 }
 
 interface Props {
-  expenses: ExpenseSummary[]
+  expenses: SerializedExpense[]
 }
 
 export function ExpenseTable({ expenses }: Props) {
@@ -196,7 +198,7 @@ export function ExpenseTable({ expenses }: Props) {
                   {format(new Date(expense.expenseDate), "dd/MM/yyyy", { locale: vi })}
                 </td>
                 <td className="px-4 py-3 text-right font-medium tabular-nums">
-                  {expense.amount.toNumber().toLocaleString("vi-VN")}đ
+                  {expense.amount.toLocaleString("vi-VN")}đ
                 </td>
                 <td className="px-4 py-3">
                   <ExpenseStatusBadge status={expense.status} />

@@ -27,7 +27,7 @@ export function JobTypeCreateDialog({ children }: Props) {
         </DialogHeader>
         <JobTypeForm
           action={createJobTypeAction}
-          redirectTo="/dashboard/workforce/job-types"
+          onSuccess={() => setOpen(false)}
         />
       </DialogContent>
     </Dialog>

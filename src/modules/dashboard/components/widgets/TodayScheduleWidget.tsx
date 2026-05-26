@@ -1,5 +1,6 @@
 import { CalendarDays, MapPin } from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import { WidgetShell } from "../shared/WidgetShell"
 import { EmptyState } from "../shared/EmptyState"
 import type { TodaySchedule } from "../../types/dashboard.types"
@@ -47,12 +48,10 @@ export function TodayScheduleWidget({
             <Link
               key={schedule.orderItemId}
               href={`/dashboard/orders/${schedule.id}`}
-              className="flex gap-3 py-3 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors group"
-              style={
-                index < displayCount - 1
-                  ? { borderBottom: "1px solid var(--border)" }
-                  : undefined
-              }
+              className={cn(
+                "flex gap-3 py-3 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors group",
+                index < displayCount - 1 && "border-b border-border",
+              )}
             >
               {/* Time */}
               <div className="shrink-0 pt-0.5">

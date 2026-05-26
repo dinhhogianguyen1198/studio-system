@@ -115,7 +115,7 @@ export default async function InvoiceDetailPage({ params }: Props) {
                 {invoice.discountAmount.toNumber() > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Giảm giá</span>
-                    <span className="tabular-nums text-emerald-600">
+                    <span className="tabular-nums text-indicator-success">
                       -{invoice.discountAmount.toNumber().toLocaleString("vi-VN")}đ
                     </span>
                   </div>
@@ -136,13 +136,13 @@ export default async function InvoiceDetailPage({ params }: Props) {
                 {invoice.paidAmount.toNumber() > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Đã thanh toán</span>
-                    <span className="tabular-nums text-emerald-600">
+                    <span className="tabular-nums text-indicator-success">
                       -{invoice.paidAmount.toNumber().toLocaleString("vi-VN")}đ
                     </span>
                   </div>
                 )}
                 {remaining > 0 && (
-                  <div className="flex justify-between font-medium text-orange-600">
+                  <div className="flex justify-between font-medium text-indicator-warning">
                     <span>Còn phải thu</span>
                     <span className="tabular-nums">{remaining.toLocaleString("vi-VN")}đ</span>
                   </div>

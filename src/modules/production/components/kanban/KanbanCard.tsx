@@ -29,18 +29,18 @@ interface KanbanCardProps {
 const PRIORITY_CONFIG = {
   overdue: {
     label: "Trễ hạn",
-    className: "bg-destructive/15 border-destructive/30 text-destructive",
-    dot: "bg-destructive",
+    className: "bg-destructive/10 border-destructive/25 text-destructive",
+    dot: "bg-indicator-danger",
   },
   urgent: {
     label: "Gấp",
-    className: "bg-warning/15 border-warning/30 text-warning-foreground",
-    dot: "bg-warning",
+    className: "bg-indicator-warning/10 border-indicator-warning/25 text-indicator-warning",
+    dot: "bg-indicator-warning",
   },
   high: {
     label: "Sắp đến hạn",
-    className: "bg-info/15 border-info/30 text-info-foreground",
-    dot: "bg-info",
+    className: "bg-indicator-info/10 border-indicator-info/25 text-indicator-info",
+    dot: "bg-indicator-info",
   },
   normal: {
     label: "",
@@ -85,9 +85,9 @@ export function KanbanCard({ order, isDragDisabled = false }: KanbanCardProps) {
         <div
           className={cn(
             "absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg",
-            order.priority === "overdue" && "bg-destructive",
-            order.priority === "urgent" && "bg-warning",
-            order.priority === "high" && "bg-info",
+            order.priority === "overdue" && "bg-indicator-danger",
+            order.priority === "urgent" && "bg-indicator-warning",
+            order.priority === "high" && "bg-indicator-info",
           )}
         />
       )}
@@ -192,9 +192,9 @@ export function KanbanCard({ order, isDragDisabled = false }: KanbanCardProps) {
                 className={cn(
                   "h-full rounded-full transition-all duration-300",
                   deliveryProgress === 100
-                    ? "bg-success"
+                    ? "bg-indicator-success"
                     : deliveryProgress > 50
-                      ? "bg-info"
+                      ? "bg-indicator-info"
                       : "bg-muted-foreground/40",
                 )}
                 style={{ width: `${deliveryProgress}%` }}
@@ -226,7 +226,7 @@ export function KanbanCard({ order, isDragDisabled = false }: KanbanCardProps) {
           {/* Payment indicator */}
           <div className="flex items-center gap-1 shrink-0">
             {order.isFullyPaid ? (
-              <CheckCircle2 className="h-3 w-3 text-success-foreground" />
+              <CheckCircle2 className="h-3 w-3 text-indicator-success" />
             ) : (
               <span className="text-[10px] tabular-nums text-muted-foreground">
                 {((order.paidAmount / (order.totalAmount || 1)) * 100).toFixed(0)}% TT

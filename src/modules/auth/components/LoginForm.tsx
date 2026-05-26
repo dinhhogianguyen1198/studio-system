@@ -24,7 +24,7 @@ export function LoginForm() {
       {!state.success && state.error && (
         <div
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="rounded-md border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive"
         >
           {state.error}
         </div>
@@ -32,7 +32,7 @@ export function LoginForm() {
 
       {/* Email */}
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="email" className="block text-sm font-medium">
           Email
         </label>
         <Input
@@ -45,10 +45,9 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           aria-describedby={fieldErrors?.email ? "email-error" : undefined}
           aria-invalid={!!fieldErrors?.email}
-          className={fieldErrors?.email ? "border-red-400" : ""}
         />
         {fieldErrors?.email && (
-          <p id="email-error" className="text-xs text-red-600">
+          <p id="email-error" className="text-xs text-destructive">
             {fieldErrors.email[0]}
           </p>
         )}
@@ -56,7 +55,7 @@ export function LoginForm() {
 
       {/* Mật khẩu */}
       <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="password" className="block text-sm font-medium">
           Mật khẩu
         </label>
         <Input
@@ -68,10 +67,9 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           aria-describedby={fieldErrors?.password ? "password-error" : undefined}
           aria-invalid={!!fieldErrors?.password}
-          className={fieldErrors?.password ? "border-red-400" : ""}
         />
         {fieldErrors?.password && (
-          <p id="password-error" className="text-xs text-red-600">
+          <p id="password-error" className="text-xs text-destructive">
             {fieldErrors.password[0]}
           </p>
         )}

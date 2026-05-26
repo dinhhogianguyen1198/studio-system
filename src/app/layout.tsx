@@ -1,34 +1,45 @@
-import type { Metadata } from "next";
-import { Nunito, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Nunito, Geist_Mono } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/providers/theme-provider"
 
 const nunito = Nunito({
   variable: "--font-sans",
   subsets: ["latin", "vietnamese"],
   weight: ["300", "400", "500", "600", "700", "800"],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+})
 
 export const metadata: Metadata = {
   title: "Lu Production",
   description: "Hệ thống quản lý studio",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html
       lang="vi"
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
-  );
+  )
 }

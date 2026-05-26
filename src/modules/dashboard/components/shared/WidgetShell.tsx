@@ -22,8 +22,8 @@ export function WidgetShell({
   return (
     <div
       className={cn(
-        "bg-card border border-border rounded-lg p-5 transition-all duration-200",
-        "hover:shadow-sm hover:border-border/60",
+        "bg-card border border-border rounded-lg p-5 transition-shadow duration-200",
+        "hover:shadow-sm",
         className,
       )}
     >

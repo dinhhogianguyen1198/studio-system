@@ -29,11 +29,11 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700">
+      <label htmlFor={htmlFor} className="block text-sm font-medium">
         {label}
       </label>
       {children}
-      {errors?.[0] && <p className="mt-1 text-xs text-red-600">{errors[0]}</p>}
+      {errors?.[0] && <p className="mt-1 text-xs text-destructive">{errors[0]}</p>}
     </div>
   )
 }
@@ -88,7 +88,7 @@ export function CreateLeadForm({
   return (
     <form action={formAction} className="space-y-5">
       {!state.success && state.error && (
-        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="rounded-md border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive">
           {state.error}
         </div>
       )}
@@ -101,7 +101,7 @@ export function CreateLeadForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-invalid={!!fe?.title}
-          className={fe?.title ? "border-red-400" : ""}
+          aria-invalid={!!fe?.title}
         />
       </Field>
 
@@ -114,7 +114,7 @@ export function CreateLeadForm({
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
             aria-invalid={!!fe?.contactName}
-            className={fe?.contactName ? "border-red-400" : ""}
+            aria-invalid={!!fe?.contactName}
           />
         </Field>
 
@@ -283,7 +283,7 @@ export function EditLeadForm({
   return (
     <form action={formAction} className="space-y-5">
       {!state.success && state.error && (
-        <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="rounded-md border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm text-destructive">
           {state.error}
         </div>
       )}
@@ -295,7 +295,7 @@ export function EditLeadForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-invalid={!!fe?.title}
-          className={fe?.title ? "border-red-400" : ""}
+          aria-invalid={!!fe?.title}
         />
       </Field>
 
@@ -307,7 +307,7 @@ export function EditLeadForm({
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
             aria-invalid={!!fe?.contactName}
-            className={fe?.contactName ? "border-red-400" : ""}
+            aria-invalid={!!fe?.contactName}
           />
         </Field>
 

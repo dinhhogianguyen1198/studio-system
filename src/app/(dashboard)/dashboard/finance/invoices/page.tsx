@@ -67,7 +67,13 @@ export default async function InvoicesPage() {
         </Card>
       </div>
 
-      <InvoiceTable invoices={invoices} />
+      <InvoiceTable
+        invoices={invoices.map((i) => ({
+          ...i,
+          totalAmount: i.totalAmount.toNumber(),
+          paidAmount: i.paidAmount.toNumber(),
+        }))}
+      />
     </div>
   )
 }

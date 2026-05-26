@@ -22,7 +22,7 @@ export function KpiCard({ data }: KpiCardProps): React.ReactElement {
     <LazyMotion features={domAnimation}>
       <m.div
         variants={cardVariants}
-        className="bg-card border border-border rounded-lg p-5 transition-all duration-200 hover:shadow-sm hover:border-border/60"
+        className="bg-card border border-border rounded-lg p-5 transition-shadow duration-200 hover:shadow-sm"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
