@@ -13,6 +13,7 @@ import { redirect } from "next/navigation"
 import type { ActionResult } from "@/shared/types/api.types"
 
 const SESSION_MAX_AGE = 8 * 60 * 60 // 8 giờ
+const REMEMBER_ME_MAX_AGE = 30 * 24 * 60 * 60 // 30 ngày
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,9 @@ export async function loginAction(
   _prevState: ActionResult<void>,
   formData: FormData
 ): Promise<ActionResult<void>> {
+  const rememberMe = formData.get("rememberMe") === "on"
+  const maxAge = rememberMe ? REMEMBER_ME_MAX_AGE : SESSION_MAX_AGE
+
   const raw = Object.fromEntries(formData)
   const parsed = loginSchema.safeParse(raw)
 
@@ -87,7 +91,7 @@ export async function loginAction(
       // permissions không lưu trong JWT — fetch từ DB trong session callback
     },
     secret: env.AUTH_SECRET,
-    maxAge: SESSION_MAX_AGE,
+    maxAge: maxAge,
     salt: cookieName,
   })
 
@@ -99,7 +103,7 @@ export async function loginAction(
     secure: isSecure,
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_MAX_AGE,
+    maxAge: maxAge,
   })
 
   await writeAuditLog({

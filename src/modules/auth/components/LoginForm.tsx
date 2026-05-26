@@ -15,6 +15,7 @@ export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
 
   const fieldErrors = !state.success ? state.fieldErrors : undefined
 
@@ -73,6 +74,21 @@ export function LoginForm() {
             {fieldErrors.password[0]}
           </p>
         )}
+      </div>
+
+      {/* Ghi nhớ đăng nhập */}
+      <div className="flex items-center gap-2">
+        <input
+          id="rememberMe"
+          name="rememberMe"
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          className="h-4 w-4 cursor-pointer rounded border-border accent-foreground"
+        />
+        <label htmlFor="rememberMe" className="cursor-pointer select-none text-sm">
+          Ghi nhớ đăng nhập
+        </label>
       </div>
 
       <Button type="submit" disabled={isPending} className="w-full">
