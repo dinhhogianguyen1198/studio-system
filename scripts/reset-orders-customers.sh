@@ -25,21 +25,24 @@ RESET='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Tự detect app/ — hoạt động dù chạy từ scripts/ hay từ thư mục gốc
-if [[ -f "$SCRIPT_DIR/app/.env" ]]; then
-  APP_DIR="$SCRIPT_DIR/app"
-elif [[ -f "$SCRIPT_DIR/../app/.env" ]]; then
-  APP_DIR="$(cd "$SCRIPT_DIR/../app" && pwd)"
-else
-  echo -e "${RED}Không tìm thấy thư mục app/ (đã thử $SCRIPT_DIR/app và $SCRIPT_DIR/../app)${RESET}"
+# Tìm app dir bằng cách đi lên từng cấp cho đến khi tìm thấy .env
+APP_DIR=""
+SEARCH="$SCRIPT_DIR"
+for _ in 1 2 3 4; do
+  if [[ -f "$SEARCH/.env" ]]; then
+    APP_DIR="$(cd "$SEARCH" && pwd)"
+    break
+  fi
+  SEARCH="$(dirname "$SEARCH")"
+done
+
+if [[ -z "$APP_DIR" ]]; then
+  echo -e "${RED}Không tìm thấy .env — chạy script từ bên trong repo.${RESET}"
   exit 1
 fi
 
 # ── Load .env ─────────────────────────────────────────────────────────────────
 ENV_FILE="$APP_DIR/.env"
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo -e "${RED}Không tìm thấy $ENV_FILE${RESET}"
-  exit 1
-fi
 
 # Parse DATABASE_URL từ .env
 DATABASE_URL=$(grep -E '^DATABASE_URL=' "$ENV_FILE" | head -1 | cut -d'=' -f2- | tr -d '"' | tr -d "'")
