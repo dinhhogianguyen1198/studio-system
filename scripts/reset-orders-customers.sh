@@ -188,8 +188,8 @@ DELETE FROM order_feedbacks;
 -- 6. Xóa order_incidental_costs (FK → orders)
 DELETE FROM order_incidental_costs;
 
--- 7. Set NULL expenses.order_id (onDelete: SetNull)
-UPDATE expenses SET order_id = NULL WHERE order_id IS NOT NULL;
+-- 7. Set NULL expenses."orderId" (onDelete: SetNull, column name là camelCase)
+UPDATE expenses SET "orderId" = NULL WHERE "orderId" IS NOT NULL;
 
 -- 8. Xóa orders
 DELETE FROM orders;
