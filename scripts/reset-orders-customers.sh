@@ -151,16 +151,69 @@ fi
 
 echo ""
 
-# ── Step 4: Chạy script xóa ───────────────────────────────────────────────────
+# ── Step 4: Xóa bằng SQL trực tiếp ───────────────────────────────────────────
 echo -e "${BOLD}Step 3/3: Đang xóa dữ liệu...${RESET}"
 echo ""
 
-cd "$APP_DIR"
-TS_SCRIPT="$SCRIPT_DIR/reset-orders-customers.ts"
-if [[ ! -f "$TS_SCRIPT" ]]; then
-  TS_SCRIPT="$SCRIPT_DIR/../scripts/reset-orders-customers.ts"
-fi
-npx tsx "$TS_SCRIPT"
+run_sql() {
+  local label="$1"
+  local sql="$2"
+  printf "  %-40s" "$label"
+  local result
+  result=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "$sql" 2>&1)
+  # psql trả về "DELETE N" hoặc "UPDATE N"
+  local count
+  count=$(echo "$result" | grep -Eo '[0-9]+' | head -1)
+  echo "${count:-0} bản ghi"
+}
+
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'SQL'
+BEGIN;
+
+-- 1. Xóa order_item_workers (FK → order_items)
+DELETE FROM order_item_workers;
+
+-- 2. Xóa order_item_workflow_logs (FK → order_items)
+DELETE FROM order_item_workflow_logs;
+
+-- 3. Xóa order_items (FK → orders)
+DELETE FROM order_items;
+
+-- 4. Xóa order_payments (FK → orders)
+DELETE FROM order_payments;
+
+-- 5. Xóa order_feedbacks (FK → orders)
+DELETE FROM order_feedbacks;
+
+-- 6. Xóa order_incidental_costs (FK → orders)
+DELETE FROM order_incidental_costs;
+
+-- 7. Set NULL expenses.order_id (onDelete: SetNull)
+UPDATE expenses SET order_id = NULL WHERE order_id IS NOT NULL;
+
+-- 8. Xóa orders
+DELETE FROM orders;
+
+-- 9. Xóa invoice_items (FK → invoices)
+DELETE FROM invoice_items;
+
+-- 10. Xóa invoices
+DELETE FROM invoices;
+
+-- 11. Xóa lead_notes (FK → leads)
+DELETE FROM lead_notes;
+
+-- 12. Xóa leads
+DELETE FROM leads;
+
+-- 13. Xóa customer_notes (FK → customers)
+DELETE FROM customer_notes;
+
+-- 14. Xóa customers
+DELETE FROM customers;
+
+COMMIT;
+SQL
 
 echo ""
 echo -e "${GREEN}${BOLD}Hoàn tất.${RESET}"
