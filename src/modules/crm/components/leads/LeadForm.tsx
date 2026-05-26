@@ -101,7 +101,6 @@ export function CreateLeadForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-invalid={!!fe?.title}
-          aria-invalid={!!fe?.title}
         />
       </Field>
 
@@ -113,7 +112,6 @@ export function CreateLeadForm({
             placeholder="Nguyễn Văn A"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            aria-invalid={!!fe?.contactName}
             aria-invalid={!!fe?.contactName}
           />
         </Field>
@@ -295,7 +293,6 @@ export function EditLeadForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           aria-invalid={!!fe?.title}
-          aria-invalid={!!fe?.title}
         />
       </Field>
 
@@ -306,7 +303,6 @@ export function EditLeadForm({
             name="contactName"
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
-            aria-invalid={!!fe?.contactName}
             aria-invalid={!!fe?.contactName}
           />
         </Field>
