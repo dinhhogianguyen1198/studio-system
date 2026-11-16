@@ -10,7 +10,7 @@
   "d1_databases": [{
     "binding": "DB",
     "database_name": "studio-system",
-    "database_id": "00000000-0000-0000-0000-000000000000",
+    "database_id": "bc8d7377-6d8a-4e22-8b71-efd27db61376",
     "migrations_dir": "prisma/d1-migrations"
   }]
 }
