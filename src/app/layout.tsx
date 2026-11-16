@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Lu Production",
+  icons: { icon: "/app-icon.png" },
   description: "Hệ thống quản lý studio",
 }
 

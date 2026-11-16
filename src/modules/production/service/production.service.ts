@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { productionRepository } from "../repository/production.repository"
 import {
   serializeKanbanOrder,
@@ -66,17 +66,10 @@ export const productionService = {
           await orderService.computeAndUpdateOrderStatus(orderId)
           break
         }
-        await db.$transaction(
-          pendingItems.map((item) =>
-            db.orderItem.update({
-              where: { id: item.id },
-              data: {
-                deliveryStatus: "DELIVERED",
-                fileDeliveredAt: new Date(),
-              },
-            }),
-          ),
-        )
+        await db.orderItem.updateMany({
+          where: { orderId, deliveryStatus: "PENDING" },
+          data: { deliveryStatus: "DELIVERED", fileDeliveredAt: new Date() },
+        })
         await orderService.computeAndUpdateOrderStatus(orderId)
         break
       }

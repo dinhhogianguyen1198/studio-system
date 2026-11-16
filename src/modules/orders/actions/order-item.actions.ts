@@ -10,7 +10,7 @@ import { orderItemService } from "../service/order-item.service"
 import { orderService } from "../service/order.service"
 import { addOrderItemSchema, updateOrderItemSchema, recordPaymentSchema, updatePaymentSchema, createOrderFeedbackSchema, createIncidentalCostSchema, updateIncidentalCostSchema } from "../schemas/orders.schema"
 import { orderRepository } from "../repository/order.repository"
-import type { PaymentType, PaymentMethod } from "@prisma/client"
+import type { PaymentType, PaymentMethod } from "@prisma/client/edge"
 
 const ERROR_MESSAGES: Record<string, string> = {
   ORDER_ITEM_NOT_FOUND: "Dịch vụ không tồn tại trong đơn hàng",

@@ -1,5 +1,6 @@
+import { atomicBatch, insertRow } from "@/shared/lib/d1"
 import { db } from "@/shared/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client/edge"
 import type { RoleFilters } from "../types/rbac-management.types"
 
 // ─── Reusable select fragments ────────────────────────────────────────────────
@@ -60,8 +61,8 @@ export const rbacRoleRepository = {
       ...(!includeDeleted && { deletedAt: null }),
       ...(search && {
         OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { description: { contains: search, mode: "insensitive" } },
+          { name: { contains: search } },
+          { description: { contains: search } },
         ],
       }),
     }
@@ -191,33 +192,13 @@ export const rbacRoleRepository = {
     permissionIds: string[],
     assignedById: string
   ) {
-    return db.$transaction(async (tx) => {
-      const existing = await tx.rolePermission.findMany({
-        where: { roleId, permissionId: { in: permissionIds } },
-        select: { permissionId: true },
-      })
-      const existingIds = new Set(existing.map((e) => e.permissionId))
-      const newIds = permissionIds.filter((id) => !existingIds.has(id))
-
-      if (newIds.length === 0) return []
-
-      await tx.rolePermission.createMany({
-        data: newIds.map((permissionId) => ({
-          roleId,
-          permissionId,
-          assignedById,
-        })),
-      })
-
-      return tx.rolePermission.findMany({
-        where: { roleId, permissionId: { in: newIds } },
-        select: {
-          assignedAt: true,
-          permission: {
-            select: { id: true, action: true, resource: true, description: true },
-          },
-        },
-      })
+    const ids = [...new Set(permissionIds)]
+    await atomicBatch(ids.map((permissionId) => {
+      const statement = insertRow("role_permissions", { roleId, permissionId, assignedById })
+      return { ...statement, sql: statement.sql + ' ON CONFLICT("roleId", "permissionId") DO NOTHING' }
+    }))
+    return db.rolePermission.findMany({
+      where: { roleId, permissionId: { in: ids } }, select: rolePermissionSelect,
     })
   },
 
@@ -226,25 +207,10 @@ export const rbacRoleRepository = {
     permissionIds: string[],
     assignedById: string
   ) {
-    return db.$transaction(async (tx) => {
-      await tx.rolePermission.deleteMany({ where: { roleId } })
-      if (permissionIds.length === 0) return []
-      await tx.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({
-          roleId,
-          permissionId,
-          assignedById,
-        })),
-      })
-      return tx.rolePermission.findMany({
-        where: { roleId },
-        select: {
-          assignedAt: true,
-          permission: {
-            select: { id: true, action: true, resource: true, description: true },
-          },
-        },
-      })
-    })
+    await atomicBatch([
+      { sql: 'DELETE FROM role_permissions WHERE "roleId" = ?', values: [roleId] },
+      ...[...new Set(permissionIds)].map((permissionId) => insertRow("role_permissions", { roleId, permissionId, assignedById })),
+    ])
+    return db.rolePermission.findMany({ where: { roleId }, select: rolePermissionSelect })
   },
 }

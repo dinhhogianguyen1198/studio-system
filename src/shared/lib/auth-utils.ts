@@ -8,7 +8,7 @@ import type { Session } from "next-auth"
 // ─── Dev bypass ───────────────────────────────────────────────────────────────
 // Dùng khi AUTH_BYPASS_DEV=true trong .env để test mà không cần đăng nhập.
 
-const DEV_BYPASS = process.env.AUTH_BYPASS_DEV === "true"
+const DEV_BYPASS = process.env.NODE_ENV === "development" && process.env.AUTH_BYPASS_DEV === "true"
 
 const DEV_ROLE: RoleWithPermissions = {
   id: "dev-role-id",

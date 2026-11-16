@@ -54,9 +54,9 @@ export const leadRepository = {
     const where = {
       ...(search && {
         OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { contactName: { contains: search, mode: "insensitive" as const } },
-          { contactEmail: { contains: search, mode: "insensitive" as const } },
+          { title: { contains: search } },
+          { contactName: { contains: search } },
+          { contactEmail: { contains: search } },
         ],
       }),
       ...(status && { status }),

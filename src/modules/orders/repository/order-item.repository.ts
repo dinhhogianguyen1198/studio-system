@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import type { AddOrderItemDto, OrderItemSummary, UpdateOrderItemDto } from "../types/orders.types"
 import { orderItemSummarySelect } from "../types/orders.types"
 

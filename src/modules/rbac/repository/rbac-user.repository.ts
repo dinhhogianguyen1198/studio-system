@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client/edge"
 import type { UserManagementFilters } from "../types/rbac-management.types"
 
 // ─── Reusable select fragments ────────────────────────────────────────────────
@@ -40,8 +40,8 @@ export const rbacUserRepository = {
     const where: Prisma.UserWhereInput = {
       ...(search && {
         OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { email: { contains: search, mode: "insensitive" } },
+          { name: { contains: search } },
+          { email: { contains: search } },
         ],
       }),
       ...(roleId && { roleId }),

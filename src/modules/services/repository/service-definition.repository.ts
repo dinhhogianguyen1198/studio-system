@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client/edge"
 import type {
   CreateServiceDefinitionDto,
   ServiceDefinitionDetail,
@@ -25,7 +25,7 @@ export const serviceDefinitionRepository = {
     const { isActive, search, page, pageSize } = filters
     const where: Prisma.ServiceDefinitionWhereInput = {
       ...(isActive !== undefined && { isActive }),
-      ...(search && { name: { contains: search, mode: "insensitive" } }),
+      ...(search && { name: { contains: search } }),
     }
     const [data, total] = await Promise.all([
       db.serviceDefinition.findMany({
@@ -70,7 +70,7 @@ export const serviceDefinitionRepository = {
     return db.serviceDefinition.create({
       data: {
         ...rest,
-        defaultPrice: new (await import("@prisma/client")).Prisma.Decimal(defaultPrice),
+        defaultPrice: new (await import("@prisma/client/edge")).Prisma.Decimal(defaultPrice),
         createdById,
       },
       select: serviceDefinitionDetailSelect,
@@ -84,7 +84,7 @@ export const serviceDefinitionRepository = {
       data: {
         ...rest,
         ...(defaultPrice !== undefined && {
-          defaultPrice: new (await import("@prisma/client")).Prisma.Decimal(defaultPrice),
+          defaultPrice: new (await import("@prisma/client/edge")).Prisma.Decimal(defaultPrice),
         }),
       },
       select: serviceDefinitionDetailSelect,

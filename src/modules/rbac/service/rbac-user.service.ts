@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { hashPassword } from "@/shared/lib/password"
 import { rbacUserRepository } from "../repository/rbac-user.repository"
 import { rbacRoleRepository } from "../repository/rbac-role.repository"

@@ -49,62 +49,23 @@ describe("orderService", () => {
     })
   })
 
-  describe("generateOrderNumber (via createOrder)", () => {
-    it("generates ORD-YEAR-0001 format for the first order of the year", async () => {
+  describe("create with atomic D1 sequence", () => {
+    it("uses the sequence value returned by SQLite", async () => {
       const year = new Date().getFullYear()
-
-      prismaMock.$transaction.mockImplementation(async (fn) => {
-        const txMock = {
-          $queryRaw: vi.fn().mockResolvedValue([]),
-          order: {
-            findFirst: vi.fn().mockResolvedValue(null),
-          },
-        }
-        return fn(txMock as never)
-      })
-
-      const expected = `ORD-${year}-0001`
-
-      mockRepo.create.mockResolvedValue({ id: "ord-1", orderNumber: expected } as never)
-
-      await orderService.createOrder(
-        { customerId: "cust-1", items: [] } as never,
-        "user-1"
-      )
-
-      expect(mockRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ orderNumber: expected }),
-        "user-1"
-      )
+      prismaMock.$queryRaw.mockResolvedValue([{ value: 1 }])
+      mockRepo.create.mockResolvedValue({ id: "ord-1" } as never)
+      const input = { contactName: "Test" }
+      await orderService.create(input, "user-1")
+      expect(mockRepo.create).toHaveBeenCalledWith(input, "user-1", `ORD-${year}-0001`)
     })
 
-    it("increments sequence number from last order in current year", async () => {
+    it("formats sequence values larger than four digits without truncation", async () => {
       const year = new Date().getFullYear()
-
-      prismaMock.$transaction.mockImplementation(async (fn) => {
-        const txMock = {
-          $queryRaw: vi.fn().mockResolvedValue([]),
-          order: {
-            findFirst: vi.fn().mockResolvedValue({ orderNumber: `ORD-${year}-0005` }),
-          },
-        }
-        return fn(txMock as never)
-      })
-
-      mockRepo.create.mockResolvedValue({
-        id: "ord-2",
-        orderNumber: `ORD-${year}-0006`,
-      } as never)
-
-      await orderService.createOrder(
-        { customerId: "cust-1", items: [] } as never,
-        "user-1"
-      )
-
-      expect(mockRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ orderNumber: `ORD-${year}-0006` }),
-        "user-1"
-      )
+      prismaMock.$queryRaw.mockResolvedValue([{ value: 10001 }])
+      mockRepo.create.mockResolvedValue({ id: "ord-2" } as never)
+      const input = { contactName: "Test" }
+      await orderService.create(input, "user-1")
+      expect(mockRepo.create).toHaveBeenCalledWith(input, "user-1", `ORD-${year}-10001`)
     })
   })
 })

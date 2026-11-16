@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { db } from "@/shared/lib/prisma"
 import type { ExpenseFilters } from "../schemas/finance.schema"
 import {
@@ -15,7 +15,7 @@ export const expenseRepository = {
 
     const where: Prisma.ExpenseWhereInput = {
       deletedAt: null,
-      ...(search && { title: { contains: search, mode: "insensitive" } }),
+      ...(search && { title: { contains: search } }),
       ...(categoryId && { categoryId }),
       ...(status && { status }),
       ...(orderId && { orderId }),
@@ -103,10 +103,10 @@ export const expenseRepository = {
     to: Date,
   ): Promise<{ status: string; amount: number }[]> {
     const rows = await db.$queryRaw<{ status: string; amount: string }[]>`
-      SELECT status, COALESCE(SUM(amount), 0)::text AS amount
+      SELECT status, COALESCE(SUM(amount), 0) AS amount
       FROM expenses
-      WHERE deleted_at IS NULL
-        AND expense_date >= ${from} AND expense_date <= ${to}
+      WHERE "deletedAt" IS NULL
+        AND "expenseDate" >= ${from} AND "expenseDate" <= ${to}
       GROUP BY status
     `
     return rows.map((r) => ({ status: r.status, amount: parseFloat(r.amount) }))
@@ -117,11 +117,11 @@ export const expenseRepository = {
     to: Date,
   ): Promise<{ categoryId: string; amount: number }[]> {
     const rows = await db.$queryRaw<{ categoryId: string; amount: string }[]>`
-      SELECT category_id AS "categoryId", COALESCE(SUM(amount), 0)::text AS amount
+      SELECT "categoryId" AS "categoryId", COALESCE(SUM(amount), 0) AS amount
       FROM expenses
-      WHERE deleted_at IS NULL AND status = 'PAID'
-        AND expense_date >= ${from} AND expense_date <= ${to}
-      GROUP BY category_id
+      WHERE "deletedAt" IS NULL AND status = 'PAID'
+        AND "expenseDate" >= ${from} AND "expenseDate" <= ${to}
+      GROUP BY "categoryId"
     `
     return rows.map((r) => ({ categoryId: r.categoryId, amount: parseFloat(r.amount) }))
   },

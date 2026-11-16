@@ -55,10 +55,10 @@ export const customerRepository = {
     const where = {
       ...(search && {
         OR: [
-          { name: { contains: search, mode: "insensitive" as const } },
-          { email: { contains: search, mode: "insensitive" as const } },
-          { phone: { contains: search, mode: "insensitive" as const } },
-          { company: { contains: search, mode: "insensitive" as const } },
+          { name: { contains: search } },
+          { email: { contains: search } },
+          { phone: { contains: search } },
+          { company: { contains: search } },
         ],
       }),
     }
@@ -86,7 +86,7 @@ export const customerRepository = {
   },
 
   async findById(id: string) {
-    return db.customer.findUnique({
+    const customer = await db.customer.findUnique({
       where: { id },
       select: {
         id: true,
@@ -103,6 +103,7 @@ export const customerRepository = {
         ...customerDetailInclude,
       },
     })
+    return customer ? { ...customer, tags: Array.isArray(customer.tags) ? customer.tags.filter((tag): tag is string => typeof tag === "string") : [] } : null
   },
 
   async findByEmail(email: string) {

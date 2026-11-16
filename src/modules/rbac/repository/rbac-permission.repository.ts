@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client/edge"
 import type { PermissionFilters } from "../types/rbac-management.types"
 
 // ─── Reusable select fragments ────────────────────────────────────────────────

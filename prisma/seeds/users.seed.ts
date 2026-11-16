@@ -9,13 +9,18 @@ export async function seedUsers() {
     throw new Error("Chạy seedRoles() trước khi seedUsers()")
   }
 
-  const hashedPassword = await bcrypt.hash("Admin123@", 12)
+  const password = process.env.SEED_ADMIN_PASSWORD
+  const email = process.env.SEED_ADMIN_EMAIL
+  if (!email || !password || password.length < 12) {
+    throw new Error("Cần SEED_ADMIN_EMAIL và SEED_ADMIN_PASSWORD (ít nhất 12 ký tự).")
+  }
+  const hashedPassword = await bcrypt.hash(password, 12)
 
   const owner = await db.user.upsert({
-    where: { email: "admin@example.com" },
+    where: { email: email },
     update: { password: hashedPassword, roleId: ownerRole.id },
     create: {
-      email: "admin@example.com",
+      email: email,
       name: "Admin",
       password: hashedPassword,
       roleId: ownerRole.id,

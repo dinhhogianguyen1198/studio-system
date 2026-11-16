@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client"
+import { atomicBatch, insertRow, updateRow, createId } from "@/shared/lib/d1"
+import { Prisma } from "@prisma/client/edge"
 import { db } from "@/shared/lib/prisma"
 import type { PaginatedResponse } from "@/shared/types/api.types"
 import {
@@ -17,9 +18,9 @@ export const workerRepository = {
     const where: Prisma.WorkerWhereInput = {
       ...(search && {
         OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { email: { contains: search, mode: "insensitive" } },
-          { phone: { contains: search, mode: "insensitive" } },
+          { name: { contains: search } },
+          { email: { contains: search } },
+          { phone: { contains: search } },
         ],
       }),
       ...(isActive !== undefined && { isActive }),
@@ -62,44 +63,30 @@ export const workerRepository = {
   async create(data: CreateWorkerDto, createdById: string): Promise<WorkerDetail> {
     const { jobTypeIds, primaryJobTypeId, ...workerData } = data
 
-    return db.worker.create({
-      data: {
-        ...workerData,
-        createdById,
-        jobTypes: {
-          create: jobTypeIds.map((jobTypeId) => ({
-            jobTypeId,
-            isPrimary: jobTypeId === primaryJobTypeId,
-          })),
-        },
-      },
-      select: workerDetailSelect,
-    })
+    const id = createId()
+    const now = new Date()
+    await atomicBatch([
+      insertRow("workers", { id, ...workerData, createdById, createdAt: now, updatedAt: now }),
+      ...jobTypeIds.map((jobTypeId) => insertRow("worker_job_types", {
+        workerId: id, jobTypeId, isPrimary: jobTypeId === primaryJobTypeId,
+      })),
+    ])
+    return db.worker.findUniqueOrThrow({ where: { id }, select: workerDetailSelect })
   },
 
   async update(data: UpdateWorkerDto): Promise<WorkerDetail> {
     const { id, jobTypeIds, primaryJobTypeId, ...workerData } = data
 
-    return db.$transaction(async (tx) => {
-      if (jobTypeIds !== undefined) {
-        await tx.workerJobType.deleteMany({ where: { workerId: id } })
-        if (jobTypeIds.length > 0) {
-          await tx.workerJobType.createMany({
-            data: jobTypeIds.map((jobTypeId) => ({
-              workerId: id,
-              jobTypeId,
-              isPrimary: jobTypeId === primaryJobTypeId,
-            })),
-          })
-        }
-      }
-
-      return tx.worker.update({
-        where: { id },
-        data: workerData,
-        select: workerDetailSelect,
-      })
-    })
+    await atomicBatch([
+      ...(jobTypeIds === undefined ? [] : [
+        { sql: 'DELETE FROM worker_job_types WHERE "workerId" = ?', values: [id] },
+        ...jobTypeIds.map((jobTypeId) => insertRow("worker_job_types", {
+          workerId: id, jobTypeId, isPrimary: jobTypeId === primaryJobTypeId,
+        })),
+      ]),
+      updateRow("workers", id, { ...workerData, updatedAt: new Date() }),
+    ])
+    return db.worker.findUniqueOrThrow({ where: { id }, select: workerDetailSelect })
   },
 
   async delete(id: string): Promise<void> {
