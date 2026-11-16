@@ -29,36 +29,48 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Cloudflare build
+## Deploy to Cloudflare Workers
 
-Commit and push the updated `package.json` and `package-lock.json` to the branch
-connected to Cloudflare before starting a new deployment. Publishing a Codex
-environment does not push repository changes to GitHub.
+This project uses OpenNext to keep the existing Next.js and Auth.js behavior.
+`cloudflare.config.ts` is the deployment configuration; the `cf` CLI uploads the
+Worker and static assets. No shared page/data cache or image optimization service
+is configured. `next dev` and the standalone Docker build remain available.
 
-- Build command: `npm run build`.
-- `npm ci` runs `postinstall` to generate Prisma Client from `prisma/schema.prisma`.
-- The build generates Prisma Client again before running `next build --webpack`.
-  This also handles dependency caches or installation with lifecycle scripts disabled.
-- Configure `DATABASE_URL`, `AUTH_SECRET` (at least 32 characters), and `AUTH_URL`
-  in the deployment environment. Enter secret values in Cloudflare settings;
-  never commit `.env`. `prisma generate` itself does not require a database connection.
-- Apply database migrations separately against the intended database. The build
-  command does not migrate or seed production data.
+```bash
+npm ci
+npm test
+npm run build:cloudflare
+npx cf deploy --dry-run --prebuilt
+```
 
-The build log must show `prisma generate && next build --webpack`,
-`Generated Prisma Client`, and `Next.js 16.2.6 (webpack)`. If it still shows
-only `next build`, verify the deployed commit, branch, and root directory.
+The Cloudflare build runs Prisma generation, `next build --webpack`, OpenNext,
+and then Vite to produce `.cloudflare/output/v0`. Run the full build script;
+`cf build` alone does not run the OpenNext preparation step.
 
-To fix the build command before the repository change is available, use
-`npx --no-install prisma generate && npx --no-install next build --webpack`
-in Cloudflare's build settings.
+Before building, set `DATABASE_URL`, `AUTH_SECRET`, and `AUTH_URL` in your local
+ignored `.env` or in the Cloudflare build variables. Build-time values alone do
+not configure production secrets. Use a dedicated hosted PostgreSQL database
+accessible from Workers; `localhost` points to the Worker itself in production.
 
-These steps address the Next.js build. Running this server-rendered application
-on Cloudflare Workers also requires a compatible Next.js adapter and Worker
-deployment configuration; a successful `next build` alone does not deploy a Worker.
+Configure the `DATABASE_URL` and `AUTH_SECRET` Worker secrets in Cloudflare.
+`AUTH_SECRET` must be a securely generated random value of at least 32 characters.
+The configured production URL is
+`https://studio-system.dinhhogianguyen1198.workers.dev`.
+Auth.js trusts the Worker host and uses HTTPS cookies at that URL.
 
-## Deploy on Vercel
+Apply `npx prisma migrate deploy` separately to the intended database before
+launch. Do not run the development user seed against production: it contains a
+fixed demonstration administrator password. Bootstrap the owner with a unique
+password instead. Do not set `AUTH_BYPASS_DEV` in a deployed environment.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+For Cloudflare Workers Builds, set:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Build command: `npm run build:cloudflare`
+- Deploy command: `npx cf deploy --prebuilt`
+
+For a local deployment after `cf auth login`, run `npm run deploy:cloudflare`.
+Use `npm run preview:cloudflare` to exercise the built Worker locally. Add test
+secrets in the ignored `.dev.vars` file. Production secrets must never be committed.
+
+A successful build does not verify a database connection. Verify login, protected
+routes, and database writes against the deployed PostgreSQL instance before use.

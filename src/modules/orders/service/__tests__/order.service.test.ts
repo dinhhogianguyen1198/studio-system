@@ -49,13 +49,13 @@ describe("orderService", () => {
     })
   })
 
-  describe("generateOrderNumber (via createOrder)", () => {
+  describe("generateOrderNumber (via create)", () => {
     it("generates ORD-YEAR-0001 format for the first order of the year", async () => {
       const year = new Date().getFullYear()
 
       prismaMock.$transaction.mockImplementation(async (fn) => {
         const txMock = {
-          $queryRaw: vi.fn().mockResolvedValue([]),
+          $executeRaw: vi.fn().mockResolvedValue([]),
           order: {
             findFirst: vi.fn().mockResolvedValue(null),
           },
@@ -67,14 +67,15 @@ describe("orderService", () => {
 
       mockRepo.create.mockResolvedValue({ id: "ord-1", orderNumber: expected } as never)
 
-      await orderService.createOrder(
+      await orderService.create(
         { customerId: "cust-1", items: [] } as never,
         "user-1"
       )
 
       expect(mockRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ orderNumber: expected }),
-        "user-1"
+        expect.objectContaining({ customerId: "cust-1" }),
+        "user-1",
+        expected
       )
     })
 
@@ -83,7 +84,7 @@ describe("orderService", () => {
 
       prismaMock.$transaction.mockImplementation(async (fn) => {
         const txMock = {
-          $queryRaw: vi.fn().mockResolvedValue([]),
+          $executeRaw: vi.fn().mockResolvedValue([]),
           order: {
             findFirst: vi.fn().mockResolvedValue({ orderNumber: `ORD-${year}-0005` }),
           },
@@ -96,14 +97,15 @@ describe("orderService", () => {
         orderNumber: `ORD-${year}-0006`,
       } as never)
 
-      await orderService.createOrder(
+      await orderService.create(
         { customerId: "cust-1", items: [] } as never,
         "user-1"
       )
 
       expect(mockRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ orderNumber: `ORD-${year}-0006` }),
-        "user-1"
+        expect.objectContaining({ customerId: "cust-1" }),
+        "user-1",
+        `ORD-${year}-0006`
       )
     })
   })
