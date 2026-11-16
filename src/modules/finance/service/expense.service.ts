@@ -1,5 +1,5 @@
-import { Prisma } from "@prisma/client"
-import type { PaymentMethod } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
+import type { PaymentMethod } from "@prisma/client/edge"
 import { expenseRepository } from "../repository/expense.repository"
 import type {
   CreateExpenseInput,

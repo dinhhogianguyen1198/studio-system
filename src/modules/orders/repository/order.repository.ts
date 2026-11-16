@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import type {
   CreateOrderDto,
   OrderDetail,
@@ -24,10 +24,10 @@ export const orderRepository = {
       ...(orderManagementUnitId && { orderManagementUnitId }),
       ...(search && {
         OR: [
-          { orderNumber: { contains: search, mode: "insensitive" } },
-          { contactName: { contains: search, mode: "insensitive" } },
-          { contactPhone: { contains: search, mode: "insensitive" } },
-          { partyName: { contains: search, mode: "insensitive" } },
+          { orderNumber: { contains: search } },
+          { contactName: { contains: search } },
+          { contactPhone: { contains: search } },
+          { partyName: { contains: search } },
         ],
       }),
     }

@@ -7,7 +7,7 @@ const { auth } = NextAuth(authConfig)
 
 // AUTH_BYPASS_DEV=true trong .env → bỏ qua auth hoàn toàn khi test local.
 // KHÔNG dùng trong production.
-export default process.env.AUTH_BYPASS_DEV === "true"
+export default process.env.NODE_ENV === "development" && process.env.AUTH_BYPASS_DEV === "true"
   ? (_req: NextRequest) => NextResponse.next()
   : auth
 

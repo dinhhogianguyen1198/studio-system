@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client"
+import { atomicBatch, insertRow, createId } from "@/shared/lib/d1"
+import { Prisma } from "@prisma/client/edge"
 import { db } from "@/shared/lib/prisma"
 import type { InvoiceFilters } from "../schemas/finance.schema"
 import {
@@ -17,9 +18,9 @@ export const invoiceRepository = {
       deletedAt: null,
       ...(search && {
         OR: [
-          { invoiceNumber: { contains: search, mode: "insensitive" } },
-          { customer: { name: { contains: search, mode: "insensitive" } } },
-          { order: { orderNumber: { contains: search, mode: "insensitive" } } },
+          { invoiceNumber: { contains: search } },
+          { customer: { name: { contains: search } } },
+          { order: { orderNumber: { contains: search } } },
         ],
       }),
       ...(status && { status }),
@@ -81,13 +82,13 @@ export const invoiceRepository = {
     }>
   }): Promise<InvoiceDetail> {
     const { items, ...invoiceData } = data
-    return db.invoice.create({
-      data: {
-        ...invoiceData,
-        items: { create: items },
-      },
-      select: invoiceDetailSelect,
-    })
+    const id = createId()
+    const now = new Date()
+    await atomicBatch([
+      insertRow("invoices", { id, ...invoiceData, issueDate: now, createdAt: now, updatedAt: now }),
+      ...items.map((item) => insertRow("invoice_items", { id: createId(), invoiceId: id, ...item })),
+    ])
+    return db.invoice.findUniqueOrThrow({ where: { id }, select: invoiceDetailSelect })
   },
 
   async update(id: string, data: Prisma.InvoiceUpdateInput): Promise<InvoiceDetail> {
@@ -108,9 +109,9 @@ export const invoiceRepository = {
       sortOrder: number
     }>,
   ): Promise<void> {
-    await db.$transaction([
-      db.invoiceItem.deleteMany({ where: { invoiceId } }),
-      db.invoiceItem.createMany({ data: items.map((item) => ({ ...item, invoiceId })) }),
+    await atomicBatch([
+      { sql: 'DELETE FROM invoice_items WHERE "invoiceId" = ?', values: [invoiceId] },
+      ...items.map((item) => insertRow("invoice_items", { id: createId(), invoiceId, ...item })),
     ])
   },
 
@@ -120,14 +121,11 @@ export const invoiceRepository = {
 
   async generateInvoiceNumber(): Promise<string> {
     const year = new Date().getFullYear()
-    const prefix = `INV-${year}-`
-    const latest = await db.invoice.findFirst({
-      where: { invoiceNumber: { startsWith: prefix } },
-      orderBy: { invoiceNumber: "desc" },
-      select: { invoiceNumber: true },
-    })
-    const seq = latest ? parseInt(latest.invoiceNumber.split("-")[2] ?? "0") + 1 : 1
-    return `${prefix}${String(seq).padStart(4, "0")}`
+    const rows = await db.$queryRaw<{ value: number }[]>`
+      INSERT INTO number_sequences (name, value) VALUES (${`INV-${year}`}, 1)
+      ON CONFLICT(name) DO UPDATE SET value = value + 1 RETURNING value
+    `
+    return `INV-${year}-${String(rows[0].value).padStart(4, "0")}`
   },
 
   // ─── Aggregations for reports ─────────────────────────────────────────────
@@ -135,8 +133,8 @@ export const invoiceRepository = {
   async sumPaidByMonth(from: Date, to: Date): Promise<{ month: string; total: number }[]> {
     const rows = await db.$queryRaw<{ month: string; total: string }[]>`
       SELECT
-        TO_CHAR(DATE_TRUNC('month', "issueDate"), 'YYYY-MM') AS month,
-        SUM("totalAmount")::text AS total
+        strftime('%Y-%m', "issueDate") AS month,
+        SUM("totalAmount") AS total
       FROM invoices
       WHERE "deletedAt" IS NULL
         AND status IN ('PAID', 'PARTIAL')

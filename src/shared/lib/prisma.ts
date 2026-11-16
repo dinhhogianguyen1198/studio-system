@@ -1,30 +1,34 @@
 import "server-only"
-import { Pool } from "pg"
-import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "@prisma/client"
+import { PrismaD1 } from "@prisma/adapter-d1"
+import { PrismaClient } from "@prisma/client/edge"
+import { getD1 } from "./d1"
+import { getCloudflareContext } from "@opennextjs/cloudflare"
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL
-  if (!connectionString) {
-    throw new Error("DATABASE_URL chưa được cấu hình trong .env")
+// Resolve bindings during a request, not while Next.js collects build metadata.
+// Cache only within the current request, never across D1 request contexts.
+const clients = new WeakMap<object, PrismaClient>()
+function getClient() {
+  const key = globalThis.studioD1 ?? getCloudflareContext().ctx
+  let client = clients.get(key)
+  if (!client) {
+    // Next dev runs in Node; this branch is eliminated from production builds.
+    let Client = PrismaClient
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      Client = (require("@prisma/client") as typeof import("@prisma/client")).PrismaClient
+    }
+    client = new Client({ adapter: new PrismaD1(getD1()) })
+    clients.set(key, client)
   }
-
-  const pool = new Pool({ connectionString, max: 10 })
-  const adapter = new PrismaPg(pool)
-
-  return new PrismaClient({
-    adapter,
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
-  })
+  return client
 }
-
-export const db = globalForPrisma.prisma ?? createPrismaClient()
-
-globalForPrisma.prisma = db
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    if (property === "$transaction") {
+      throw new Error("D1 không hỗ trợ Prisma transactions. Dùng atomicBatch.")
+    }
+    const client = getClient()
+    const value = Reflect.get(client, property, client)
+    return typeof value === "function" ? value.bind(client) : value
+  },
+})

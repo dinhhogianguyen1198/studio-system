@@ -1,6 +1,6 @@
 import "server-only"
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 
 // ═══════════════════════════════════════════════════════════════
 // Dashboard Repository — Studio Production Command Center
@@ -96,8 +96,8 @@ export const dashboardRepository = {
     const result = await db.$queryRaw<
       Array<{ count: bigint; total: number | null }>
     >(Prisma.sql`
-      SELECT COUNT(*)::bigint AS count,
-             COALESCE(SUM("totalAmount" - "paidAmount"), 0)::numeric AS total
+      SELECT COUNT(*) AS count,
+             COALESCE(SUM("totalAmount" - "paidAmount"), 0) AS total
       FROM orders
       WHERE "totalAmount" > "paidAmount"
         AND status NOT IN ('COMPLETED', 'OVERDUE')
@@ -265,8 +265,8 @@ export const dashboardRepository = {
       SELECT
         o."orderManagementUnitId" AS unit_id,
         COALESCE(u.name, 'Chưa phân loại') AS unit_name,
-        COUNT(*)::bigint AS count,
-        COALESCE(SUM(o."totalAmount" - o."paidAmount"), 0)::numeric AS total_unpaid
+        COUNT(*) AS count,
+        COALESCE(SUM(o."totalAmount" - o."paidAmount"), 0) AS total_unpaid
       FROM orders o
       LEFT JOIN order_management_units u ON u.id = o."orderManagementUnitId"
       WHERE o."totalAmount" > o."paidAmount"
@@ -353,8 +353,8 @@ export const dashboardRepository = {
     >(Prisma.sql`
       SELECT
         DATE("paidAt") AS day,
-        COALESCE(SUM(amount), 0)::numeric AS revenue,
-        COUNT(DISTINCT "orderId")::bigint AS order_count
+        COALESCE(SUM(amount), 0) AS revenue,
+        COUNT(DISTINCT "orderId") AS order_count
       FROM order_payments
       WHERE "paidAt" >= ${startDate}
         AND type != 'REFUND'
@@ -410,7 +410,7 @@ export const dashboardRepository = {
       }).catch(() => {
         // Fallback: use raw count if field comparison not supported
         return db.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
-          SELECT COUNT(*)::bigint AS count
+          SELECT COUNT(*) AS count
           FROM orders
           WHERE "totalAmount" > "paidAmount"
             AND "totalAmount" > 0

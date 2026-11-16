@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { workerAssignmentRepository } from "@/modules/workforce/repository/worker-assignment.repository"
 import { workerRepository } from "@/modules/workforce/repository/worker.repository"
 import { jobTypeRepository } from "@/modules/workforce/repository/job-type.repository"

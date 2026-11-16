@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import {
   kanbanOrderSelect,
   calendarOrderSelect,
@@ -18,10 +18,10 @@ export const productionRepository = {
       ...(orderManagementUnitId && { orderManagementUnitId }),
       ...(search && {
         OR: [
-          { orderNumber: { contains: search, mode: "insensitive" } },
-          { contactName: { contains: search, mode: "insensitive" } },
-          { partyName: { contains: search, mode: "insensitive" } },
-          { customer: { name: { contains: search, mode: "insensitive" } } },
+          { orderNumber: { contains: search } },
+          { contactName: { contains: search } },
+          { partyName: { contains: search } },
+          { customer: { name: { contains: search } } },
         ],
       }),
     }

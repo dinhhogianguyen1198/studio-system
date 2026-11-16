@@ -1,6 +1,7 @@
+import { atomicBatch } from "@/shared/lib/d1"
 import { db } from "@/shared/lib/prisma"
-import { Prisma } from "@prisma/client"
-import type { PaymentType, PaymentMethod } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
+import type { PaymentType, PaymentMethod } from "@prisma/client/edge"
 import { orderRepository } from "../repository/order.repository"
 import type {
   CreateOrderDto,
@@ -50,22 +51,14 @@ function computeOrderStatus(
   return "NEW"
 }
 
-// Advisory lock key cố định cho việc generate order number (tránh race condition)
-const ORDER_NUMBER_LOCK_KEY = 987654321n
-
 async function generateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear()
-  return db.$transaction(async (tx) => {
-    // pg_advisory_xact_lock đảm bảo chỉ 1 transaction chạy đoạn này cùng lúc
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ORDER_NUMBER_LOCK_KEY})`
-    const last = await tx.order.findFirst({
-      where: { orderNumber: { startsWith: `ORD-${year}-` } },
-      orderBy: { orderNumber: "desc" },
-      select: { orderNumber: true },
-    })
-    const seq = last ? parseInt(last.orderNumber.split("-")[2], 10) + 1 : 1
-    return `ORD-${year}-${String(seq).padStart(4, "0")}`
-  })
+  const rows = await db.$queryRaw<{ value: number }[]>`
+    INSERT INTO number_sequences (name, value) VALUES (${`ORD-${year}`}, 1)
+    ON CONFLICT(name) DO UPDATE SET value = value + 1
+    RETURNING value
+  `
+  return `ORD-${year}-${String(rows[0].value).padStart(4, "0")}`
 }
 
 export const orderService = {
@@ -166,14 +159,10 @@ export const orderService = {
       grouped.set(status, ids)
     }
 
-    await db.$transaction(
-      Array.from(grouped.entries()).map(([status, ids]) =>
-        db.order.updateMany({
-          where: { id: { in: ids } },
-          data: { status },
-        }),
-      ),
-    )
+    await atomicBatch(Array.from(statusMap, ([id, status]) => ({
+      sql: 'UPDATE orders SET status = ?, "updatedAt" = ? WHERE id = ?',
+      values: [status, now, id],
+    })))
 
     return statusMap.size
   },

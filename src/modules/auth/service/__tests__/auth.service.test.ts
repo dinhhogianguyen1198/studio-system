@@ -11,7 +11,7 @@ const mockRepo = vi.mocked(authRepository)
 const mockVerify = vi.mocked(verifyPassword)
 const mockHash = vi.mocked(hashPassword)
 
-const MOCK_ROLE = { id: "role-1", name: "user", isSystem: false, description: null }
+const MOCK_ROLE = { id: "role-1", name: "user", isSystem: false, description: null, createdAt: new Date(), updatedAt: new Date(), createdById: null, updatedById: null, deletedAt: null, permissions: [] }
 const MOCK_USER = {
   id: "user-1",
   email: "test@example.com",
@@ -20,6 +20,9 @@ const MOCK_USER = {
   image: null,
   roleId: "role-1",
   role: MOCK_ROLE,
+  emailVerified: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 }
 
 describe("authService", () => {
@@ -75,6 +78,7 @@ describe("authService", () => {
       mockRepo.findDefaultRole.mockResolvedValue(MOCK_ROLE)
       mockHash.mockResolvedValue("$2b$12$newhashed")
       mockRepo.createUser.mockResolvedValue({
+        ...MOCK_USER,
         id: "user-new",
         email: "new@example.com",
         name: "New User",
@@ -120,7 +124,7 @@ describe("authService", () => {
       mockRepo.findUserById.mockResolvedValue(MOCK_USER)
       mockVerify.mockResolvedValue(true)
       mockHash.mockResolvedValue("$2b$12$updated")
-      mockRepo.updatePassword.mockResolvedValue(undefined)
+      mockRepo.updatePassword.mockResolvedValue(MOCK_USER)
 
       await expect(
         authService.changePassword("user-1", "old_password", "new_password")

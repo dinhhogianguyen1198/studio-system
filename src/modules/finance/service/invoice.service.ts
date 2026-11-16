@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { invoiceRepository } from "../repository/invoice.repository"
 import type {
   CreateInvoiceInput,

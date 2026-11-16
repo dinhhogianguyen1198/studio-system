@@ -1,5 +1,5 @@
 import { db } from "@/shared/lib/prisma"
-import type { Prisma } from "@prisma/client"
+import type { Prisma } from "@prisma/client/edge"
 import type {
   CreateOrderManagementUnitDto,
   OrderManagementUnitFilters,
@@ -15,7 +15,7 @@ export const orderManagementUnitRepository = {
     const { isActive, search, page, pageSize } = filters
     const where: Prisma.OrderManagementUnitWhereInput = {
       ...(isActive !== undefined && { isActive }),
-      ...(search && { name: { contains: search, mode: "insensitive" } }),
+      ...(search && { name: { contains: search } }),
     }
     const [data, total] = await Promise.all([
       db.orderManagementUnit.findMany({

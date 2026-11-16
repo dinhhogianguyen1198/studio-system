@@ -6,10 +6,10 @@ import { defineConfig } from "prisma/config";
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
-    seed: "npx tsx prisma/seeds/index.ts",
+    path: "prisma/d1-migrations",
+    seed: "tsx scripts/seed-d1.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: "file:./dev.db",
   },
 });

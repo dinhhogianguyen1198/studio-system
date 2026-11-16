@@ -99,14 +99,13 @@ export const financeReportRepository = {
     to: Date,
     groupBy: "day" | "week" | "month",
   ): Promise<RevenueExpenseDataPoint[]> {
-    const dateTrunc = groupBy === "day" ? "day" : groupBy === "week" ? "week" : "month"
-    const format = groupBy === "day" ? "YYYY-MM-DD" : groupBy === "week" ? "IYYY-IW" : "YYYY-MM"
+    const format = groupBy === "day" ? "%Y-%m-%d" : groupBy === "week" ? "%G-%V" : "%Y-%m"
 
     const [revenueRows, expenseRows, workerCostRows] = await Promise.all([
       db.$queryRaw<{ period: string; total: string }[]>`
         SELECT
-          TO_CHAR(DATE_TRUNC(${dateTrunc}, "paidAt"), ${format}) AS period,
-          SUM(amount)::text AS total
+          strftime(${format}, "paidAt") AS period,
+          SUM(amount) AS total
         FROM order_payments
         WHERE type != 'REFUND'
           AND "paidAt" >= ${from} AND "paidAt" <= ${to}
@@ -114,8 +113,8 @@ export const financeReportRepository = {
       `,
       db.$queryRaw<{ period: string; total: string }[]>`
         SELECT
-          TO_CHAR(DATE_TRUNC(${dateTrunc}, "expenseDate"), ${format}) AS period,
-          SUM(amount)::text AS total
+          strftime(${format}, "expenseDate") AS period,
+          SUM(amount) AS total
         FROM expenses
         WHERE "deletedAt" IS NULL AND status = 'PAID'
           AND "expenseDate" >= ${from} AND "expenseDate" <= ${to}
@@ -123,8 +122,8 @@ export const financeReportRepository = {
       `,
       db.$queryRaw<{ period: string; total: string }[]>`
         SELECT
-          TO_CHAR(DATE_TRUNC(${dateTrunc}, "completedAt"), ${format}) AS period,
-          SUM("totalCost")::text AS total
+          strftime(${format}, "completedAt") AS period,
+          SUM("totalCost") AS total
         FROM order_item_workers
         WHERE status = 'COMPLETED'
           AND "completedAt" >= ${from} AND "completedAt" <= ${to}
@@ -167,9 +166,9 @@ export const financeReportRepository = {
         o.id AS "orderId",
         o."orderNumber",
         COALESCE(o."contactName", c.name, 'Không có tên') AS "customerName",
-        COALESCE(SUM(DISTINCT op.amount) FILTER (WHERE op.type != 'REFUND'), 0)::text AS revenue,
-        COALESCE(SUM(DISTINCT oiw."totalCost"), 0)::text AS "workerCosts",
-        COALESCE(SUM(DISTINCT e.amount) FILTER (WHERE e.status = 'PAID'), 0)::text AS "directExpenses"
+        COALESCE(SUM(DISTINCT op.amount) FILTER (WHERE op.type != 'REFUND'), 0) AS revenue,
+        COALESCE(SUM(DISTINCT oiw."totalCost"), 0) AS "workerCosts",
+        COALESCE(SUM(DISTINCT e.amount) FILTER (WHERE e.status = 'PAID'), 0) AS "directExpenses"
       FROM orders o
       LEFT JOIN customers c ON c.id = o."customerId"
       LEFT JOIN order_payments op ON op."orderId" = o.id AND op."paidAt" >= ${from} AND op."paidAt" <= ${to}
@@ -209,8 +208,8 @@ export const financeReportRepository = {
       SELECT
         oi."serviceDefinitionId" AS "serviceId",
         sd.name AS "serviceName",
-        SUM(oi."totalPrice")::text AS revenue,
-        COUNT(oi.id)::text AS count
+        SUM(oi."totalPrice") AS revenue,
+        COUNT(oi.id) AS count
       FROM order_items oi
       JOIN service_definitions sd ON sd.id = oi."serviceDefinitionId"
       JOIN orders o ON o.id = oi."orderId"
@@ -237,7 +236,7 @@ export const financeReportRepository = {
         ec.id AS "categoryId",
         ec.name AS "categoryName",
         COALESCE(ec.color, '#6B7280') AS "categoryColor",
-        SUM(e.amount)::text AS total
+        SUM(e.amount) AS total
       FROM expenses e
       JOIN expense_categories ec ON ec.id = e."categoryId"
       WHERE e."deletedAt" IS NULL

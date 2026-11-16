@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import type { ExpenseStatus, InvoiceStatus, FreelancerPaymentStatus } from "@prisma/client"
+import type { ExpenseStatus, InvoiceStatus, FreelancerPaymentStatus } from "@prisma/client/edge"
 
 const EXPENSE_STATUS_LABELS: Record<ExpenseStatus, string> = {
   PENDING: "Chờ duyệt",

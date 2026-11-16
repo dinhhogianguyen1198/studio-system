@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { freelancerPaymentRepository } from "../repository/freelancer-payment.repository"
 import type {
   CreateFreelancerPaymentInput,

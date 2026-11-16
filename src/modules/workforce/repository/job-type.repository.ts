@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client/edge"
 import { db } from "@/shared/lib/prisma"
 import type { PaginatedResponse } from "@/shared/types/api.types"
 import {
@@ -15,8 +15,8 @@ export const jobTypeRepository = {
     const where: Prisma.JobTypeWhereInput = {
       ...(search && {
         OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { slug: { contains: search, mode: "insensitive" } },
+          { name: { contains: search } },
+          { slug: { contains: search } },
         ],
       }),
       ...(isActive !== undefined && { isActive }),
@@ -77,7 +77,7 @@ export const jobTypeRepository = {
 
   async existsByName(name: string, excludeId?: string): Promise<boolean> {
     const count = await db.jobType.count({
-      where: { name: { equals: name, mode: "insensitive" }, ...(excludeId && { id: { not: excludeId } }) },
+      where: { name: { equals: name }, ...(excludeId && { id: { not: excludeId } }) },
     })
     return count > 0
   },

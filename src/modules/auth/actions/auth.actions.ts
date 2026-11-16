@@ -7,7 +7,7 @@ import { loginSchema, changePasswordSchema } from "../schemas/auth.schema"
 import { writeAuditLog } from "@/shared/lib/audit"
 import { requireSession } from "@/shared/lib/auth-utils"
 import { checkRateLimit } from "@/shared/lib/rate-limit"
-import { env } from "@/config/env"
+import { getAuthEnv } from "@/config/env"
 import { headers, cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import type { ActionResult } from "@/shared/types/api.types"
@@ -74,6 +74,7 @@ export async function loginAction(
   }
 
   // Tạo JWT token theo đúng format Auth.js đọc trong session callback
+  const env = getAuthEnv()
   const isSecure = env.AUTH_URL.startsWith("https")
   const cookieName = isSecure
     ? "__Secure-authjs.session-token"

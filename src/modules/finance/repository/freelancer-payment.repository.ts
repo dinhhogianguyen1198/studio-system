@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client"
+import { atomicBatch, insertRow, updateRow, createId } from "@/shared/lib/d1"
+import { Prisma } from "@prisma/client/edge"
 import { db } from "@/shared/lib/prisma"
 import type { FreelancerPaymentFilters } from "../schemas/finance.schema"
 import {
@@ -57,13 +58,13 @@ export const freelancerPaymentRepository = {
     items: Array<{ orderItemWorkerId: string; amount: Prisma.Decimal }>
   }): Promise<FreelancerPaymentDetail> {
     const { items, ...paymentData } = data
-    return db.freelancerPayment.create({
-      data: {
-        ...paymentData,
-        items: { create: items },
-      },
-      select: freelancerPaymentDetailSelect,
-    })
+    const id = createId()
+    const now = new Date()
+    await atomicBatch([
+      insertRow("freelancer_payments", { id, ...paymentData, createdAt: now, updatedAt: now }),
+      ...items.map((item) => insertRow("freelancer_payment_items", { id: createId(), freelancerPaymentId: id, ...item })),
+    ])
+    return db.freelancerPayment.findUniqueOrThrow({ where: { id }, select: freelancerPaymentDetailSelect })
   },
 
   async markPaid(
@@ -76,30 +77,14 @@ export const freelancerPaymentRepository = {
       notes?: string
     },
   ): Promise<FreelancerPaymentDetail> {
-    return db.$transaction(async (tx) => {
-      const payment = await tx.freelancerPayment.update({
-        where: { id },
-        data: {
-          status: "PAID",
-          paymentMethod: data.paymentMethod as Prisma.EnumPaymentMethodFilter["equals"],
-          reference: data.reference,
-          paidAt: data.paidAt,
-          paidById: data.paidById,
-          notes: data.notes,
-        },
-        select: { id: true, items: { select: { orderItemWorkerId: true } } },
-      })
-
-      await tx.orderItemWorker.updateMany({
-        where: { id: { in: payment.items.map((i) => i.orderItemWorkerId) } },
-        data: { paidAt: data.paidAt },
-      })
-
-      return tx.freelancerPayment.findUniqueOrThrow({
-        where: { id },
-        select: freelancerPaymentDetailSelect,
-      })
-    })
+    await atomicBatch([
+      updateRow("freelancer_payments", id, { ...data, status: "PAID", updatedAt: new Date() }),
+      {
+        sql: 'UPDATE order_item_workers SET "paidAt" = ?, "updatedAt" = ? WHERE id IN (SELECT "orderItemWorkerId" FROM freelancer_payment_items WHERE "freelancerPaymentId" = ?)',
+        values: [data.paidAt, new Date(), id],
+      },
+    ])
+    return db.freelancerPayment.findUniqueOrThrow({ where: { id }, select: freelancerPaymentDetailSelect })
   },
 
   async cancel(id: string): Promise<void> {
