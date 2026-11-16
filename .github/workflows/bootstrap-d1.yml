@@ -1,0 +1,67 @@
+name: Initialize D1 database and admin
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-system-d1-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify database configuration
+        env:
+          CLOUDFLARE_DATABASE_ID: ${{ secrets.CLOUDFLARE_DATABASE_ID }}
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const config = JSON.parse(
+            fs.readFileSync("wrangler.jsonc", "utf8")
+          );
+          const binding = config.d1_databases?.find(
+            (database) => database.binding === "DB"
+          );
+
+          if (
+            !process.env.CLOUDFLARE_DATABASE_ID ||
+            binding?.database_id !== process.env.CLOUDFLARE_DATABASE_ID
+          ) {
+            throw new Error(
+              "Database ID trong GitHub Secrets không khớp wrangler.jsonc."
+            );
+          }
+
+          console.log("Database configuration matches.");
+          NODE
+
+      - name: Apply migrations and seed admin
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_DATABASE_ID: ${{ secrets.CLOUDFLARE_DATABASE_ID }}
+          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+        run: |
+          npm run db:migrate:remote
+          npm run seed:remote
